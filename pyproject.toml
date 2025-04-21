@@ -1,7 +1,7 @@
 [project]
-name = "carrot-quest-mcp"
+name = "openai-assistant-mcp"
 version = "0.1.0"
-description = "MCP server for Carrot Quest API integration providing tools for managing apps, conversations, and users. Includes tools for tracking user activity, managing conversations, handling user properties and events, and interacting with various aspects of the Carrot Quest platform."
+description = "MCP server for OpenAI Assistant API providing tools for creating and managing AI assistants, handling conversations through threads, managing messages and runs, and integrating various assistant tools."
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [
@@ -13,7 +13,8 @@ dependencies = [
     "uvicorn>=0.27.1,<1.0.0",
     "pydantic>=2.5.2,<3.0.0",
     "pydantic-settings>=2.1.0,<3.0.0",
-    "httpx==0.27.2"
+    "httpx==0.27.2",
+    "openai>=1.18.0"
 ]
 
 [project.optional-dependencies]
