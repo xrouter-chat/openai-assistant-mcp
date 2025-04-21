@@ -1,6 +1,6 @@
 """OpenAI Assistant tools module for MCP server."""
 
-from src.tools.assistant.models import (
+from .models import (
     AssistantObject,
     BaseAssistant,
     CreateAssistantRequest,
@@ -10,7 +10,7 @@ from src.tools.assistant.models import (
     Tool,
     ToolResources,
 )
-from src.tools.assistant.tools import (
+from .tools import (
     create_assistant,
     delete_assistant,
     get_assistant,
