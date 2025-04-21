@@ -4,8 +4,8 @@ from typing import Any, Dict, List, Literal, Optional, cast
 
 from openai import OpenAI
 
-from src.config.settings import Settings
-from src.tools.assistant.models import (
+from ...config.settings import Settings
+from .models import (
     AssistantObject,
     CreateAssistantRequest,
     ModifyAssistantRequest,
