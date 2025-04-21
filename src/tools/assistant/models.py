@@ -4,25 +4,11 @@ This module provides type-safe models for interacting with the OpenAI Assistant 
 including models for assistants, tools, and response formats.
 """
 
-from typing import Annotated, Dict, List, Literal, Optional, Union
+from typing import List, Literal, Optional, Union
 
 from pydantic import BaseModel, Field
 
-# Metadata type
-MetadataKey = Annotated[
-    str,
-    Field(
-        max_length=64, description="Metadata key with maximum length of 64 characters"
-    ),
-]
-MetadataValue = Annotated[
-    str,
-    Field(
-        max_length=512,
-        description="Metadata value with maximum length of 512 characters",
-    ),
-]
-Metadata = Dict[MetadataKey, MetadataValue]
+from ..models import CodeInterpreterTool, Metadata, ToolResources
 
 
 # Response format models
@@ -80,15 +66,6 @@ ResponseFormat = Union[
     JsonObjectResponseFormat,
     JsonSchemaResponseFormat,
 ]
-
-
-# Tool models
-class CodeInterpreterTool(BaseModel):
-    """Tool for executing code in a sandboxed environment."""
-
-    type: Literal["code_interpreter"] = Field(
-        description="The type of tool being defined: code_interpreter"
-    )
 
 
 class RankingOptions(BaseModel):
@@ -167,38 +144,6 @@ class FunctionTool(BaseModel):
 Tool = Union[CodeInterpreterTool, FileSearchTool, FunctionTool]
 
 
-# Tool resources models
-class CodeInterpreterResource(BaseModel):
-    """Resources for code interpreter tool."""
-
-    file_ids: List[str] = Field(
-        default_factory=list,
-        description="A list of file IDs made available to the code_interpreter tool.",
-        max_length=20,  # Using max_length instead of max_items for list length validation
-    )
-
-
-class FileSearchResource(BaseModel):
-    """Resources for file search tool."""
-
-    vector_store_ids: List[str] = Field(
-        default_factory=list,
-        description="The vector store attached to this assistant.",
-        max_length=1,  # Using max_length instead of max_items for list length validation
-    )
-
-
-class ToolResources(BaseModel):
-    """Resources available to assistant tools."""
-
-    code_interpreter: Optional[CodeInterpreterResource] = Field(
-        default=None, description="Resources for the code interpreter tool."
-    )
-    file_search: Optional[FileSearchResource] = Field(
-        default=None, description="Resources for the file search tool."
-    )
-
-
 # Assistant models
 class BaseAssistant(BaseModel):
     """Base model for OpenAI Assistant with common fields."""
@@ -221,7 +166,7 @@ class BaseAssistant(BaseModel):
     tools: Optional[List[Tool]] = Field(
         default=None,
         description="A list of tools enabled on the assistant.",
-        max_length=128,  # Using max_length instead of max_items for list length validation
+        max_length=128,
     )
     tool_resources: Optional[ToolResources] = Field(
         default=None,
