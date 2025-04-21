@@ -8,7 +8,7 @@ from typing import List, Literal, Optional, Union
 
 from pydantic import BaseModel, Field
 
-from ..models import CodeInterpreterTool, Metadata, ToolResources
+from ..models import CodeInterpreterTool, FileSearchTool, Metadata, ToolResources
 
 
 # Response format models
@@ -98,12 +98,9 @@ class FileSearchConfig(BaseModel):
     )
 
 
-class FileSearchTool(BaseModel):
-    """Tool for searching through files."""
+class AssistantFileSearchTool(FileSearchTool):
+    """Tool for searching through files with assistant-specific configuration."""
 
-    type: Literal["file_search"] = Field(
-        description="The type of tool being defined: file_search"
-    )
     file_search: Optional[FileSearchConfig] = Field(
         default=None, description="Overrides for the file search tool."
     )
@@ -141,7 +138,7 @@ class FunctionTool(BaseModel):
     function: FunctionParameters = Field(description="The function definition.")
 
 
-Tool = Union[CodeInterpreterTool, FileSearchTool, FunctionTool]
+Tool = Union[CodeInterpreterTool, AssistantFileSearchTool, FunctionTool]
 
 
 # Assistant models

@@ -15,6 +15,14 @@ Metadata = Dict[MetadataKey, MetadataValue]
 
 
 # Common tool models
+class FileSearchTool(BaseModel):
+    """Tool for searching through files."""
+
+    type: Literal["file_search"] = Field(
+        description="The type of tool being defined: file_search"
+    )
+
+
 class CodeInterpreterTool(BaseModel):
     """Tool for executing code in a sandboxed environment."""
 

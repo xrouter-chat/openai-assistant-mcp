@@ -1,14 +1,13 @@
 """OpenAI Assistant tools module for MCP server."""
 
 from .models import (
+    AssistantFileSearchTool,
     AssistantObject,
     BaseAssistant,
     CreateAssistantRequest,
-    Metadata,
     ModifyAssistantRequest,
     ResponseFormat,
     Tool,
-    ToolResources,
 )
 from .tools import (
     create_assistant,
@@ -26,12 +25,11 @@ __all__ = [
     "modify_assistant",
     "delete_assistant",
     # Models
+    "AssistantFileSearchTool",
     "AssistantObject",
     "BaseAssistant",
     "CreateAssistantRequest",
     "ModifyAssistantRequest",
     "ResponseFormat",
     "Tool",
-    "ToolResources",
-    "Metadata",
 ]
