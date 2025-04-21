@@ -67,8 +67,20 @@ def create_assistant(
         reasoning_effort=reasoning_effort,
     )
 
-    response = client.beta.assistants.create(**request.model_dump())
-    return cast(Dict[str, Any], AssistantObject.model_validate(response).model_dump())
+    request_data = request.model_dump()
+    logger.info(f"Creating assistant with request data: {request_data}")
+
+    response = client.beta.assistants.create(**request_data)
+    logger.info(f"Got response from OpenAI: {response}")
+    logger.info(f"Response type: {type(response)}")
+
+    validated = AssistantObject.model_validate(response)
+    logger.info(f"Validated response: {validated}")
+
+    result = validated.model_dump()
+    logger.info(f"Final result: {result}")
+
+    return cast(Dict[str, Any], result)
 
 
 def get_assistant(assistant_id: str) -> Dict[str, Any]:
