@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     DEBUG: bool = False
 
     # Project
-    PROJECT_NAME: str = "carrot-quest-mcp"
+    PROJECT_NAME: str = "openai-assistant-mcp"
     VERSION: str = "0.1.0"
 
     # Host to bind the server to
@@ -27,17 +27,8 @@ class Settings(BaseSettings):
     # CORS
     BACKEND_CORS_ORIGINS: List[str] = []
 
-    # Carrot Quest Settings
-    CARROT_QUEST_API_URL: str = "https://api.carrotquest.io"
-    CARROT_QUEST_API_TOKEN: str = ""
-
-    @field_validator("CARROT_QUEST_API_URL")
-    @classmethod
-    def validate_api_url(cls, v: str) -> str:
-        """Validate API URL."""
-        if not v.startswith(("http://", "https://")):
-            raise ValueError("API URL must start with http:// or https://")
-        return v
+    # OpenAI Settings
+    OPENAI_API_KEY: str = ""
 
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     @classmethod
@@ -55,8 +46,8 @@ class Settings(BaseSettings):
 
     # Logging
     LOG_LEVEL: str = "INFO"
-    LOG_FORMAT: str = "json"  # Доступные форматы: json, text, structured
-    LOG_EXTRA_FIELDS: list[str] = []  # Дополнительные поля для логов
+    LOG_FORMAT: str = "json"  # Available formats: json, text, structured
+    LOG_EXTRA_FIELDS: list[str] = []  # Additional fields for logs
 
     # Feature Flags
     ENABLE_AUTH: bool = True  # Feature flag for authentication
