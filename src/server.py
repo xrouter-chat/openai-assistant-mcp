@@ -1,0 +1,160 @@
+"""OpenAI Assistant MCP Server.
+
+This module implements an MCP server for interacting with OpenAI Assistant API.
+"""
+
+import logging
+from typing import Any, Dict, List, Literal, Optional, cast
+
+from mcp.server.fastmcp import FastMCP
+
+from tools import Metadata, ResponseFormat, Tool, ToolResources
+from tools import create_assistant as tools_create_assistant  # Tools; Models
+from tools import delete_assistant as tools_delete_assistant
+from tools import get_assistant as tools_get_assistant
+from tools import list_assistants as tools_list_assistants
+from tools import modify_assistant as tools_modify_assistant
+
+# Get logger
+logger = logging.getLogger("openai-assistant-mcp")
+
+# Initialize FastMCP server
+logger.info("Creating FastMCP server")
+mcp = FastMCP("openai-assistant")
+logger.info("FastMCP server created: %s", mcp)
+
+
+# Tool definitions
+@mcp.tool()
+def create_assistant(
+    model: str,
+    name: Optional[str] = None,
+    description: Optional[str] = None,
+    instructions: Optional[str] = None,
+    tools: Optional[List[Tool]] = None,
+    tool_resources: Optional[ToolResources] = None,
+    metadata: Optional[Metadata] = None,
+    temperature: Optional[float] = None,
+    top_p: Optional[float] = None,
+    response_format: Optional[ResponseFormat] = None,
+    reasoning_effort: Optional[Literal["low", "medium", "high"]] = None,
+) -> Dict[str, Any]:
+    """
+    Create an assistant.
+
+    Args:
+        model: ID of the model to use
+        name: Optional name of the assistant (max 256 chars)
+        description: Optional description of the assistant (max 512 chars)
+        instructions: Optional system instructions (max 256k chars)
+        tools: Optional list of tools (max 128 tools)
+        tool_resources: Optional resources for tools
+        metadata: Optional key-value pairs (max 16 pairs)
+        temperature: Optional sampling temperature (0-2)
+        top_p: Optional nucleus sampling parameter (0-1)
+        response_format: Optional output format specification
+        reasoning_effort: Optional reasoning effort level (low/medium/high)
+    """
+    return cast(
+        Dict[str, Any],
+        tools_create_assistant(
+            model=model,
+            name=name,
+            description=description,
+            instructions=instructions,
+            tools=tools,
+            tool_resources=tool_resources,
+            metadata=metadata,
+            temperature=temperature,
+            top_p=top_p,
+            response_format=response_format,
+            reasoning_effort=reasoning_effort,
+        ),
+    )
+
+
+@mcp.tool()
+def get_assistant(assistant_id: str) -> Dict[str, Any]:
+    """
+    Get assistant by ID.
+
+    Args:
+        assistant_id: The ID of the assistant to retrieve
+    """
+    return cast(Dict[str, Any], tools_get_assistant(assistant_id))
+
+
+@mcp.resource("assistants")
+def list_assistants() -> Dict[str, Any]:
+    """
+    List assistants.
+
+    This is an MCP resource since it takes no arguments.
+    """
+    return cast(Dict[str, Any], tools_list_assistants())
+
+
+@mcp.tool()
+def modify_assistant(
+    assistant_id: str,
+    model: Optional[str] = None,
+    name: Optional[str] = None,
+    description: Optional[str] = None,
+    instructions: Optional[str] = None,
+    tools: Optional[List[Tool]] = None,
+    tool_resources: Optional[ToolResources] = None,
+    metadata: Optional[Metadata] = None,
+    temperature: Optional[float] = None,
+    top_p: Optional[float] = None,
+    response_format: Optional[ResponseFormat] = None,
+    reasoning_effort: Optional[Literal["low", "medium", "high"]] = None,
+) -> Dict[str, Any]:
+    """
+    Modify an assistant.
+
+    Args:
+        assistant_id: The ID of the assistant to modify
+        model: Optional ID of the model to use
+        name: Optional name of the assistant (max 256 chars)
+        description: Optional description of the assistant (max 512 chars)
+        instructions: Optional system instructions (max 256k chars)
+        tools: Optional list of tools (max 128 tools)
+        tool_resources: Optional resources for tools
+        metadata: Optional key-value pairs (max 16 pairs)
+        temperature: Optional sampling temperature (0-2)
+        top_p: Optional nucleus sampling parameter (0-1)
+        response_format: Optional output format specification
+        reasoning_effort: Optional reasoning effort level (low/medium/high)
+    """
+    return cast(
+        Dict[str, Any],
+        tools_modify_assistant(
+            assistant_id=assistant_id,
+            model=model,
+            name=name,
+            description=description,
+            instructions=instructions,
+            tools=tools,
+            tool_resources=tool_resources,
+            metadata=metadata,
+            temperature=temperature,
+            top_p=top_p,
+            response_format=response_format,
+            reasoning_effort=reasoning_effort,
+        ),
+    )
+
+
+@mcp.tool()
+def delete_assistant(assistant_id: str) -> Dict[str, Any]:
+    """
+    Delete an assistant.
+
+    Args:
+        assistant_id: The ID of the assistant to delete
+    """
+    return cast(Dict[str, Any], tools_delete_assistant(assistant_id))
+
+
+if __name__ == "__main__":
+    mcp.run()
