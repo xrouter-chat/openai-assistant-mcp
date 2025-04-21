@@ -173,8 +173,8 @@ class CodeInterpreterResource(BaseModel):
 
     file_ids: List[str] = Field(
         default_factory=list,
-        max_items=20,
         description="A list of file IDs made available to the code_interpreter tool.",
+        max_length=20,  # Using max_length instead of max_items for list length validation
     )
 
 
@@ -183,8 +183,8 @@ class FileSearchResource(BaseModel):
 
     vector_store_ids: List[str] = Field(
         default_factory=list,
-        max_items=1,
         description="The vector store attached to this assistant.",
+        max_length=1,  # Using max_length instead of max_items for list length validation
     )
 
 
@@ -220,8 +220,8 @@ class BaseAssistant(BaseModel):
     )
     tools: Optional[List[Tool]] = Field(
         default=None,
-        max_items=128,
         description="A list of tools enabled on the assistant.",
+        max_length=128,  # Using max_length instead of max_items for list length validation
     )
     tool_resources: Optional[ToolResources] = Field(
         default=None,
@@ -267,6 +267,19 @@ class CreateAssistantRequest(BaseAssistant):
     """Model for creating a new assistant."""
 
     model: str = Field(description="ID of the model to use.")
+    reasoning_effort: Optional[Literal["low", "medium", "high"]] = Field(
+        default=None,
+        description="Constrains effort on reasoning for reasoning models.",
+    )
+
+
+class ModifyAssistantRequest(BaseAssistant):
+    """Model for modifying an existing assistant."""
+
+    model: Optional[str] = Field(
+        default=None,
+        description="ID of the model to use.",
+    )
     reasoning_effort: Optional[Literal["low", "medium", "high"]] = Field(
         default=None,
         description="Constrains effort on reasoning for reasoning models.",
