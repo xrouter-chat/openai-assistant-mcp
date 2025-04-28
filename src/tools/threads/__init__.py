@@ -1,7 +1,4 @@
-"""OpenAI Thread API module.
-
-This module provides models and utilities for interacting with the OpenAI Thread API.
-"""
+"""OpenAI Thread tools module for MCP server."""
 
 from .models import (
     CreateThreadRequest,
@@ -10,11 +7,18 @@ from .models import (
     ThreadMessage,
     ThreadObject,
 )
+from .tools import create_thread, delete_thread, get_thread, modify_thread
 
 __all__ = [
-    "ThreadMessage",
+    # Tools
+    "create_thread",
+    "get_thread",
+    "modify_thread",
+    "delete_thread",
+    # Models
     "CreateThreadRequest",
-    "ModifyThreadRequest",
-    "ThreadObject",
     "DeleteThreadResponse",
+    "ModifyThreadRequest",
+    "ThreadMessage",
+    "ThreadObject",
 ]
