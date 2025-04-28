@@ -218,8 +218,8 @@ class MessageObject(BaseModel):
         description="On an incomplete message, details about why the message "
         "is incomplete",
     )
-    status: Literal["in_progress", "incomplete", "completed"] = Field(
-        description="The status of the message"
+    status: Optional[Literal["in_progress", "incomplete", "completed"]] = Field(
+        default=None, description="The status of the message"
     )
     attachments: List[MessageAttachment] = Field(
         default_factory=list,
