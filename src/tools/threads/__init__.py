@@ -1,6 +1,6 @@
-"""OpenAI Thread API models.
+"""OpenAI Thread API module.
 
-This package provides Pydantic models for the OpenAI Thread API.
+This module provides models and utilities for interacting with the OpenAI Thread API.
 """
 
 from .models import (
@@ -12,9 +12,9 @@ from .models import (
 )
 
 __all__ = [
-    "CreateThreadRequest",
-    "DeleteThreadResponse",
-    "ModifyThreadRequest",
     "ThreadMessage",
+    "CreateThreadRequest",
+    "ModifyThreadRequest",
     "ThreadObject",
+    "DeleteThreadResponse",
 ]

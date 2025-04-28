@@ -1,6 +1,6 @@
-"""OpenAI Message API models.
+"""OpenAI Message API module.
 
-This package provides Pydantic models for the OpenAI Message API.
+This module provides models and utilities for interacting with the OpenAI Message API.
 """
 
 from .models import (
@@ -28,25 +28,25 @@ from .models import (
 )
 
 __all__ = [
-    "AttachmentTool",
-    "CreateMessageRequest",
-    "DeleteMessageResponse",
-    "FileCitationAnnotation",
-    "FileCitationDetail",
-    "FilePathAnnotation",
-    "FilePathDetail",
     "ImageFileContent",
-    "ImageUrlContent",
-    "MessageAttachment",
-    "MessageContent",
     "MessageImageFile",
+    "ImageUrlContent",
     "MessageImageUrl",
-    "MessageIncompleteDetails",
-    "MessageListResponse",
-    "MessageObject",
-    "MessageRefusal",
-    "MessageText",
-    "ModifyMessageRequest",
-    "RefusalContent",
+    "FileCitationDetail",
+    "FileCitationAnnotation",
+    "FilePathDetail",
+    "FilePathAnnotation",
     "TextContent",
+    "MessageText",
+    "RefusalContent",
+    "MessageRefusal",
+    "MessageContent",
+    "AttachmentTool",
+    "MessageAttachment",
+    "CreateMessageRequest",
+    "ModifyMessageRequest",
+    "MessageIncompleteDetails",
+    "MessageObject",
+    "MessageListResponse",
+    "DeleteMessageResponse",
 ]
