@@ -270,11 +270,12 @@ def test_create_run(mock_openai_client):
     assert result["status"] == "completed"
     assert result["tools"][0]["type"] == "code_interpreter"
 
+    # Check that the API was called with the tool converted to a dict
     mock_openai_client.beta.threads.runs.create.assert_called_once_with(
         thread_id="thread_abc123",
         assistant_id="asst_abc123",
         model="gpt-4o",
-        tools=[tool],
+        tools=[{"type": "code_interpreter"}],
     )
 
 
