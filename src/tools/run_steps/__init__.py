@@ -19,8 +19,13 @@ from .models import (
     ToolCallFunction,
     ToolCallsStepDetails,
 )
+from .tools import get_run_step, list_run_steps
 
 __all__ = [
+    # Tools
+    "get_run_step",
+    "list_run_steps",
+    # Models
     "MessageCreationStepDetails",
     "ToolCallFunction",
     "FunctionToolCall",

@@ -26,8 +26,22 @@ from .models import (
     RefusalContent,
     TextContent,
 )
+from .tools import (
+    create_message,
+    delete_message,
+    get_message,
+    list_messages,
+    modify_message,
+)
 
 __all__ = [
+    # Tools
+    "create_message",
+    "delete_message",
+    "get_message",
+    "list_messages",
+    "modify_message",
+    # Models
     "ImageFileContent",
     "MessageImageFile",
     "ImageUrlContent",
