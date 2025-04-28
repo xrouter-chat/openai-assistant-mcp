@@ -119,7 +119,7 @@ def test_list_run_steps_with_include(mock_openai_client):
         thread_id="thread_abc123",
         run_id="run_abc123",
         extra_query={
-            "include": ["step_details.tool_calls[*].file_search.results[*].content"],
+            "include[]": ["step_details.tool_calls[*].file_search.results[*].content"],
         },
     )
 
@@ -168,6 +168,6 @@ def test_get_run_step_with_include(mock_openai_client):
         run_id="run_abc123",
         step_id="step_abc123",
         extra_query={
-            "include": ["step_details.tool_calls[*].file_search.results[*].content"],
+            "include[]": ["step_details.tool_calls[*].file_search.results[*].content"],
         },
     )

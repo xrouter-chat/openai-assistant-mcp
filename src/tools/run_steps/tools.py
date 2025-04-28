@@ -2,7 +2,7 @@
 import logging
 from typing import Any, Dict, List, Literal, Optional, cast
 
-from openai import OpenAI
+from openai import NotGiven, OpenAI
 from openai.types.beta.threads.runs import RunStepInclude
 
 from ...config.settings import Settings
@@ -41,24 +41,14 @@ def list_run_steps(
     """
     logger.info(f"Listing run steps for run {run_id} in thread {thread_id}")
 
-    # Build query parameters
-    query_params = {
-        "limit": limit,
-        "order": order,
-        "after": after,
-        "before": before,
-    }
-    # Remove None values
-    query_params = {k: v for k, v in query_params.items() if v is not None}
-
-    # Add include parameter separately
-    if include:
-        query_params["include"] = ",".join(str(i) for i in include)
-
     response = client.beta.threads.runs.steps.list(
         thread_id=thread_id,
         run_id=run_id,
-        extra_query=query_params if query_params else None,
+        limit=limit if limit is not None else NotGiven(),
+        order=order if order is not None else NotGiven(),
+        after=after if after is not None else NotGiven(),
+        before=before if before is not None else NotGiven(),
+        include=include if include is not None else NotGiven(),
     )
     logger.info(f"Got response from OpenAI: {response}")
 
@@ -97,7 +87,7 @@ def get_run_step(
         thread_id=thread_id,
         run_id=run_id,
         step_id=step_id,
-        extra_query={"include": include} if include else None,
+        include=include if include is not None else NotGiven(),
     )
     logger.info(f"Got response from OpenAI: {response}")
 
