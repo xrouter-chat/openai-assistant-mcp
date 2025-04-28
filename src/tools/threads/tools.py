@@ -80,7 +80,7 @@ def create_thread(
     validated = ThreadObject.model_validate(response)
     logger.info(f"Validated response: {validated}")
 
-    result = validated.model_dump()
+    result = validated.model_dump(exclude_none=True)
     logger.info(f"Final result: {result}")
 
     return cast(Dict[str, Any], result)

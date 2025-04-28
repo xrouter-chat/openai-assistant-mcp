@@ -6,7 +6,6 @@ from .assistant import (  # Assistant Tools & Models
     CreateAssistantRequest,
     ModifyAssistantRequest,
     ResponseFormat,
-    Tool,
     create_assistant,
     delete_assistant,
     get_assistant,
@@ -26,6 +25,7 @@ from .models import (  # Common Models
     CodeInterpreterTool,
     FileSearchTool,
     Metadata,
+    Tool,
     ToolResources,
 )
 from .threads import (  # Thread Models
