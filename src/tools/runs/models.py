@@ -198,8 +198,9 @@ class RunObject(BaseModel):
         description="The Unix timestamp (in seconds) for when the run was completed",
     )
     model: str = Field(description="The model that the assistant used for this run")
-    instructions: str = Field(
-        description="The instructions that the assistant used for this run"
+    instructions: Optional[str] = Field(
+        default=None,
+        description="The instructions that the assistant used for this run",
     )
     tools: List[Union[CodeInterpreterTool, FileSearchTool, FunctionTool]] = Field(
         description="The list of tools that the assistant used for this run"
@@ -257,3 +258,13 @@ class RunObject(BaseModel):
         default=None,
         description="Details on why the run is incomplete",
     )
+
+
+class RunListResponse(BaseModel):
+    """Model for list runs response."""
+
+    object: Literal["list"] = Field(description="The object type, which is always list")
+    data: List[RunObject] = Field(description="List of run objects")
+    first_id: str = Field(description="The ID of the first run in the list")
+    last_id: str = Field(description="The ID of the last run in the list")
+    has_more: bool = Field(description="Whether there are more runs available")

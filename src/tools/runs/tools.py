@@ -6,7 +6,13 @@ from openai import OpenAI
 
 from ...config.settings import Settings
 from ..models import CodeInterpreterTool, FileSearchTool, FunctionTool
-from .models import ResponseFormat, RunObject, ToolChoice, TruncationStrategy
+from .models import (
+    ResponseFormat,
+    RunListResponse,
+    RunObject,
+    ToolChoice,
+    TruncationStrategy,
+)
 
 logger = logging.getLogger("openai-assistant-mcp")
 settings = Settings()
@@ -217,7 +223,15 @@ def list_runs(
     params = {k: v for k, v in params.items() if v is not None}
 
     response = client.beta.threads.runs.list(thread_id=thread_id, **params)
-    return cast(Dict[str, Any], response.model_dump())
+    logger.info(f"Got response from OpenAI: {response}")
+
+    validated = RunListResponse.model_validate(response)
+    logger.info(f"Validated response: {validated}")
+
+    result = validated.model_dump(exclude_none=True)
+    logger.info(f"Final result: {result}")
+
+    return cast(Dict[str, Any], result)
 
 
 def get_run(thread_id: str, run_id: str) -> Dict[str, Any]:
