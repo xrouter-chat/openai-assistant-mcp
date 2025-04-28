@@ -2,7 +2,7 @@
 import logging
 from typing import Any, Dict, List, Literal, Optional, cast
 
-from openai import NotGiven, OpenAI
+from openai import NOT_GIVEN, OpenAI
 from openai.types.beta.threads.runs import RunStepInclude
 
 from ...config.settings import Settings
@@ -44,11 +44,11 @@ def list_run_steps(
     response = client.beta.threads.runs.steps.list(
         thread_id=thread_id,
         run_id=run_id,
-        limit=limit if limit is not None else NotGiven(),
-        order=order if order is not None else NotGiven(),
-        after=after if after is not None else NotGiven(),
-        before=before if before is not None else NotGiven(),
-        include=include if include is not None else NotGiven(),
+        limit=limit if limit is not None else NOT_GIVEN,
+        order=order if order is not None else NOT_GIVEN,
+        after=after if after is not None else NOT_GIVEN,
+        before=before if before is not None else NOT_GIVEN,
+        include=include if include is not None else NOT_GIVEN,
     )
     logger.info(f"Got response from OpenAI: {response}")
 
@@ -87,7 +87,7 @@ def get_run_step(
         thread_id=thread_id,
         run_id=run_id,
         step_id=step_id,
-        include=include if include is not None else NotGiven(),
+        include=include if include is not None else NOT_GIVEN,
     )
     logger.info(f"Got response from OpenAI: {response}")
 

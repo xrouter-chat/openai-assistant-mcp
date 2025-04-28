@@ -2,6 +2,7 @@
 from unittest.mock import Mock, patch
 
 import pytest
+from openai import NOT_GIVEN
 
 # Mock OpenAI before importing any modules that use it
 mock_openai = Mock()
@@ -95,10 +96,11 @@ def test_list_run_steps(mock_openai_client):
     mock_openai_client.beta.threads.runs.steps.list.assert_called_once_with(
         thread_id="thread_abc123",
         run_id="run_abc123",
-        extra_query={
-            "limit": 20,
-            "order": "desc",
-        },
+        limit=20,
+        order="desc",
+        after=NOT_GIVEN,
+        before=NOT_GIVEN,
+        include=NOT_GIVEN,
     )
 
 
@@ -118,9 +120,11 @@ def test_list_run_steps_with_include(mock_openai_client):
     mock_openai_client.beta.threads.runs.steps.list.assert_called_once_with(
         thread_id="thread_abc123",
         run_id="run_abc123",
-        extra_query={
-            "include[]": ["step_details.tool_calls[*].file_search.results[*].content"],
-        },
+        limit=NOT_GIVEN,
+        order=NOT_GIVEN,
+        after=NOT_GIVEN,
+        before=NOT_GIVEN,
+        include=["step_details.tool_calls[*].file_search.results[*].content"],
     )
 
 
@@ -145,7 +149,7 @@ def test_get_run_step(mock_openai_client):
         thread_id="thread_abc123",
         run_id="run_abc123",
         step_id="step_abc123",
-        extra_query=None,
+        include=NOT_GIVEN,
     )
 
 
@@ -167,7 +171,5 @@ def test_get_run_step_with_include(mock_openai_client):
         thread_id="thread_abc123",
         run_id="run_abc123",
         step_id="step_abc123",
-        extra_query={
-            "include[]": ["step_details.tool_calls[*].file_search.results[*].content"],
-        },
+        include=["step_details.tool_calls[*].file_search.results[*].content"],
     )
