@@ -61,12 +61,17 @@ def create_run(
     """
     logger.info(f"Creating run for thread {thread_id} with assistant {assistant_id}")
 
+    # Convert tool models to dictionaries if provided
+    tools_data = None
+    if tools:
+        tools_data = [tool.model_dump() for tool in tools]
+
     request_data = {
         "assistant_id": assistant_id,
         "model": model,
         "instructions": instructions,
         "additional_instructions": additional_instructions,
-        "tools": tools,
+        "tools": tools_data,
         "metadata": metadata,
         "stream": stream,
         "temperature": temperature,
@@ -141,12 +146,17 @@ def create_thread_and_run(
     """
     logger.info(f"Creating thread and run with assistant {assistant_id}")
 
+    # Convert tool models to dictionaries if provided
+    tools_data = None
+    if tools:
+        tools_data = [tool.model_dump() for tool in tools]
+
     request_data = {
         "assistant_id": assistant_id,
         "thread": thread,
         "model": model,
         "instructions": instructions,
-        "tools": tools,
+        "tools": tools_data,
         "metadata": metadata,
         "stream": stream,
         "temperature": temperature,
