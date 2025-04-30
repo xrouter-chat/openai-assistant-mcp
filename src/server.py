@@ -4,7 +4,7 @@ This module implements an MCP server for interacting with OpenAI Assistant API.
 """
 
 import logging
-from typing import Any, Dict, List, Literal, Optional, cast
+from typing import Any, Dict, List, Literal, Optional, Union, cast
 
 from mcp.server.fastmcp import FastMCP
 
@@ -14,6 +14,10 @@ from tools import delete_assistant as tools_delete_assistant
 from tools import get_assistant as tools_get_assistant
 from tools import list_assistants as tools_list_assistants
 from tools import modify_assistant as tools_modify_assistant
+from tools.threads import create_thread as tools_create_thread
+from tools.threads import delete_thread as tools_delete_thread
+from tools.threads import get_thread as tools_get_thread
+from tools.threads import modify_thread as tools_modify_thread
 
 # Get logger
 logger = logging.getLogger("openai-assistant-mcp")
@@ -154,6 +158,64 @@ def delete_assistant(assistant_id: str) -> Dict[str, Any]:
         assistant_id: The ID of the assistant to delete
     """
     return cast(Dict[str, Any], tools_delete_assistant(assistant_id))
+
+
+@mcp.tool()
+def create_thread(
+    messages: Optional[List[Dict[str, Any]]] = None,
+    metadata: Optional[Dict[str, str]] = None,
+    tool_resources: Optional[Union[Dict[str, Any], ToolResources]] = None,
+) -> Dict[str, Any]:
+    """
+    Create a thread.
+
+    Args:
+        messages: Optional list of messages to start the thread with
+        metadata: Optional key-value pairs (max 16 pairs)
+        tool_resources: Optional resources for tools
+    """
+    return cast(Dict[str, Any], tools_create_thread(messages, metadata, tool_resources))
+
+
+@mcp.tool()
+def get_thread(thread_id: str) -> Dict[str, Any]:
+    """
+    Get thread by ID.
+
+    Args:
+        thread_id: The ID of the thread to retrieve
+    """
+    return cast(Dict[str, Any], tools_get_thread(thread_id))
+
+
+@mcp.tool()
+def modify_thread(
+    thread_id: str,
+    metadata: Optional[Dict[str, str]] = None,
+    tool_resources: Optional[Union[Dict[str, Any], ToolResources]] = None,
+) -> Dict[str, Any]:
+    """
+    Modify a thread.
+
+    Args:
+        thread_id: The ID of the thread to modify
+        metadata: Optional key-value pairs (max 16 pairs)
+        tool_resources: Optional resources for tools
+    """
+    return cast(
+        Dict[str, Any], tools_modify_thread(thread_id, metadata, tool_resources)
+    )
+
+
+@mcp.tool()
+def delete_thread(thread_id: str) -> Dict[str, Any]:
+    """
+    Delete a thread.
+
+    Args:
+        thread_id: The ID of the thread to delete
+    """
+    return cast(Dict[str, Any], tools_delete_thread(thread_id))
 
 
 if __name__ == "__main__":
