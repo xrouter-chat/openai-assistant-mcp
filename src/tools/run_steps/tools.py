@@ -5,7 +5,8 @@ from typing import Any, Dict, List, Literal, Optional, cast
 from openai import NOT_GIVEN, OpenAI
 from openai.types.beta.threads.runs import RunStepInclude
 
-from ...config.settings import Settings
+from src.config.settings import Settings
+
 from .models import RunStepListResponse, RunStepObject
 
 logger = logging.getLogger("openai-assistant-mcp")

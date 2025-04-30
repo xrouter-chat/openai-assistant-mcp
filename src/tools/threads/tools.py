@@ -4,7 +4,8 @@ from typing import Any, Dict, List, Optional, Union, cast
 
 from openai import OpenAI
 
-from ...config.settings import Settings
+from src.config.settings import Settings
+
 from ..messages import MessageAttachment
 from ..models import ToolResources
 from .models import (

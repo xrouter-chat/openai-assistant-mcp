@@ -4,7 +4,8 @@ from typing import Any, Dict, List, Literal, Optional, Union, cast
 
 from openai import OpenAI
 
-from ...config.settings import Settings
+from src.config.settings import Settings
+
 from .models import (
     CreateMessageRequest,
     DeleteMessageResponse,
