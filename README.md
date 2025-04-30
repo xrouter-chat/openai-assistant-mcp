@@ -13,6 +13,89 @@ The OpenAI Assistant API enables the creation and management of AI assistants wi
 
 This project wraps these capabilities in MCP servers, making them easily accessible through the Model Context Protocol.
 
+## Running the Server
+
+### Prerequisites
+
+1. Make sure you have Python 3.11 or higher installed
+2. Install the project dependencies:
+```bash
+uv pip install -e .
+```
+
+### Starting the Server
+
+1. Navigate to the project root directory where your `src` folder is located.
+
+2. Set the PYTHONPATH and run the MCP development server:
+```bash
+PYTHONPATH=. mcp dev src/server.py
+```
+
+This command does several things:
+- `PYTHONPATH=.` - Sets the Python path to include your project root
+- `mcp dev` - Runs the MCP server in development mode with the inspector interface
+- `src/server.py` - The path to your MCP server implementation
+
+### Environment Variables
+
+Required environment variables:
+- `PYTHONPATH` - Set to the project root directory (use `.` when you're in the project directory)
+- `OPENAI_API_KEY` - Your OpenAI API key (required)
+
+Optional environment variables:
+- `ENVIRONMENT` - Server environment (default: "development")
+- `DEBUG` - Enable debug mode (default: false)
+- `HOST` - Host to bind the server to (default: "0.0.0.0")
+- `PORT` - Port to bind the server to (default: 8001)
+- `BACKEND_CORS_ORIGINS` - List of allowed CORS origins
+- `RATE_LIMIT_DEFAULT` - Default rate limit in requests per minute (default: 100)
+- `RATE_LIMIT_BURST` - Rate limit burst size (default: 200)
+- `LOG_LEVEL` - Logging level (default: "INFO")
+- `LOG_FORMAT` - Log format: json, text, or structured (default: "json")
+- `LOG_EXTRA_FIELDS` - Additional fields for logs
+- `ENABLE_AUTH` - Enable authentication (default: true)
+
+You can set them all at once using a .env file or export them in your shell:
+```bash
+PYTHONPATH=. OPENAI_API_KEY=your_key mcp dev src/server.py
+```
+
+### Accessing the Server
+
+Once running, you can access:
+- MCP Inspector UI: http://localhost:8080
+- MCP Server API: http://localhost:8001 (configurable via PORT)
+
+### Development Tips
+
+1. Use the MCP Inspector to:
+   - View available tools and resources
+   - Test API calls
+   - Debug responses
+
+2. Monitor the terminal output for:
+   - Server logs
+   - Error messages
+   - Request/response information
+
+3. Hot reload:
+   - The server will automatically reload when you make changes to the code
+   - Keep the terminal output visible to catch any errors during reload
+
+### Troubleshooting
+
+If you encounter import errors:
+1. Verify you're in the project root directory (where the `src` folder is)
+2. Ensure PYTHONPATH is set correctly (should be `.` when in project root)
+3. Check that all dependencies are installed with `uv pip install -e .`
+4. Verify Python version (3.11+ required)
+
+If you encounter API errors:
+1. Verify your OPENAI_API_KEY is set correctly
+2. Check the API rate limits in your OpenAI dashboard
+3. Monitor the server logs for detailed error messages
+
 ## Project Structure
 
 ```
@@ -21,17 +104,25 @@ This project wraps these capabilities in MCP servers, making them easily accessi
 │   ├── mcp-servers/           # MCP server documentation
 │   │   └── openai-assistant/  # OpenAI Assistant MCP server docs
 │   └── openai-assistant/      # OpenAI Assistant API documentation
+├── src/
+│   ├── config/               # Server configuration
+│   ├── tools/                # MCP tools implementation
+│   │   ├── assistant/        # Assistant management tools
+│   │   ├── messages/         # Message handling tools
+│   │   ├── runs/            # Run management tools
+│   │   ├── run_steps/       # Run steps tools
+│   │   └── threads/         # Thread management tools
+│   └── server.py            # MCP server implementation
+├── tests/                    # Test suite
 ├── .gitignore
 ├── .pre-commit-config.yaml
 ├── pyproject.toml
 └── README.md
 ```
 
-## MCP Servers
+## Features
 
-### OpenAI Assistant Server
-
-The OpenAI Assistant MCP server provides a complete interface to the OpenAI Assistant API. It supports:
+The OpenAI Assistant MCP server provides:
 
 - Assistant Management (create, list, retrieve, modify, delete)
 - Thread Management (create, retrieve, modify, delete)
@@ -41,31 +132,16 @@ The OpenAI Assistant MCP server provides a complete interface to the OpenAI Assi
 - Streaming Support
 - Tool Integration
 
-For detailed documentation on the OpenAI Assistant MCP server, see [docs/mcp-servers/openai-assistant/README.md](docs/mcp-servers/openai-assistant/README.md).
-
 ## Dependencies
 
 - `openai>=1.18.0` - Official OpenAI Python client library with Assistants API support
+- `mcp` - Model Context Protocol framework
+- `pydantic` - Data validation
+- `fastapi` - API framework
 
 ## Configuration
 
-Each MCP server requires specific configuration. For the OpenAI Assistant server:
-
-```json
-{
-  "api_key": "your-openai-api-key"
-}
-```
-
-## Usage
-
-The MCP servers can be used with any MCP-compatible client. The servers provide tools that map directly to OpenAI Assistant API endpoints, making it easy to:
-
-1. Create and manage AI assistants
-2. Handle conversations through threads
-3. Process messages and manage runs
-4. Integrate with various tools (Code Interpreter, File Search, Function Calling)
-5. Handle streaming responses
+The server uses environment variables for configuration (see Environment Variables section above).
 
 ## Error Handling
 
