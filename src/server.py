@@ -28,7 +28,7 @@ mcp = FastMCP("openai-assistant")
 logger.info("FastMCP server created: %s", mcp)
 
 
-# Tool definitions
+# Assistant Tools
 @mcp.tool()
 def create_assistant(
     model: str,
@@ -156,6 +156,7 @@ def delete_assistant(assistant_id: str) -> Dict[str, Any]:
     return cast(Dict[str, Any], tools_delete_assistant(assistant_id))
 
 
+# Thread Tools
 @mcp.tool()
 def create_thread(
     messages: Optional[List[Dict[str, Any]]] = None,
@@ -212,6 +213,31 @@ def delete_thread(thread_id: str) -> Dict[str, Any]:
         thread_id: The ID of the thread to delete
     """
     return cast(Dict[str, Any], tools_delete_thread(thread_id))
+
+
+# Message Tools
+# TODO: Implement message tools
+# - create_message
+# - get_message
+# - modify_message
+# - list_messages
+# - delete_message
+
+
+# Run Tools
+# TODO: Implement run tools
+# - create_run
+# - get_run
+# - modify_run
+# - list_runs
+# - cancel_run
+# - submit_tool_outputs
+
+
+# Run Step Tools
+# TODO: Implement run step tools
+# - get_run_step
+# - list_run_steps
 
 
 if __name__ == "__main__":
