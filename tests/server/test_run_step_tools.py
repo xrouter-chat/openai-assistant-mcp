@@ -2,6 +2,7 @@
 from unittest.mock import Mock, patch
 
 import pytest
+from openai import NOT_GIVEN
 
 # Mock OpenAI before importing any modules that use it
 mock_openai = Mock()
@@ -76,6 +77,9 @@ def test_list_run_steps(mock_openai_client):
         run_id="run_abc123",
         limit=10,
         order="desc",
+        after=NOT_GIVEN,
+        before=NOT_GIVEN,
+        include=NOT_GIVEN,
     )
 
 
@@ -104,4 +108,5 @@ def test_get_run_step(mock_openai_client):
         thread_id="thread_abc123",
         run_id="run_abc123",
         step_id="step_abc123",
+        include=NOT_GIVEN,
     )
