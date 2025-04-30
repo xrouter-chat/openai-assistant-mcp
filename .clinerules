@@ -46,6 +46,7 @@ Testing
 - Maintain high test coverage (>90%).
 - Group tests by module/functionality.
 - Use consistent testing patterns throughout the codebase.
+- Run tests using uv: `uv run pytest tests/ -v` or for specific tests `uv run pytest tests/path/to/test.py -v`
 
 Git Workflow
 - Create feature branches for new functionality.
