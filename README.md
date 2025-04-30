@@ -45,16 +45,9 @@ Required environment variables:
 
 Optional environment variables:
 - `ENVIRONMENT` - Server environment (default: "development")
-- `DEBUG` - Enable debug mode (default: false)
 - `HOST` - Host to bind the server to (default: "0.0.0.0")
 - `PORT` - Port to bind the server to (default: 8001)
 - `BACKEND_CORS_ORIGINS` - List of allowed CORS origins
-- `RATE_LIMIT_DEFAULT` - Default rate limit in requests per minute (default: 100)
-- `RATE_LIMIT_BURST` - Rate limit burst size (default: 200)
-- `LOG_LEVEL` - Logging level (default: "INFO")
-- `LOG_FORMAT` - Log format: json, text, or structured (default: "json")
-- `LOG_EXTRA_FIELDS` - Additional fields for logs
-- `ENABLE_AUTH` - Enable authentication (default: true)
 
 You can set them all at once using a .env file or export them in your shell:
 ```bash
