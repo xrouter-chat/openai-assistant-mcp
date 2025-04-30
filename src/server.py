@@ -14,6 +14,12 @@ from tools import delete_assistant as tools_delete_assistant
 from tools import get_assistant as tools_get_assistant
 from tools import list_assistants as tools_list_assistants
 from tools import modify_assistant as tools_modify_assistant
+from tools.messages import create_message as tools_create_message
+from tools.messages import delete_message as tools_delete_message
+from tools.messages import get_message as tools_get_message
+from tools.messages import list_messages as tools_list_messages
+from tools.messages import modify_message as tools_modify_message
+from tools.messages.models import MessageContent
 from tools.threads import create_thread as tools_create_thread
 from tools.threads import delete_thread as tools_delete_thread
 from tools.threads import get_thread as tools_get_thread
@@ -216,12 +222,115 @@ def delete_thread(thread_id: str) -> Dict[str, Any]:
 
 
 # Message Tools
-# TODO: Implement message tools
-# - create_message
-# - get_message
-# - modify_message
-# - list_messages
-# - delete_message
+@mcp.tool()
+def create_message(
+    thread_id: str,
+    role: Literal["user", "assistant"],
+    content: Union[str, List[MessageContent]],
+    attachments: Optional[List[Dict[str, Any]]] = None,
+    metadata: Optional[Dict[str, str]] = None,
+) -> Dict[str, Any]:
+    """
+    Create a message.
+
+    Args:
+        thread_id: The ID of the thread to create a message for
+        role: The role of the entity creating the message ('user' or 'assistant')
+        content: The content of the message (string or list of content parts)
+        attachments: Optional list of file attachments
+        metadata: Optional key-value pairs (max 16 pairs)
+    """
+    return cast(
+        Dict[str, Any],
+        tools_create_message(
+            thread_id=thread_id,
+            role=role,
+            content=content,
+            attachments=attachments,
+            metadata=metadata,
+        ),
+    )
+
+
+@mcp.tool()
+def get_message(thread_id: str, message_id: str) -> Dict[str, Any]:
+    """
+    Get message by ID.
+
+    Args:
+        thread_id: The ID of the thread the message belongs to
+        message_id: The ID of the message to retrieve
+    """
+    return cast(Dict[str, Any], tools_get_message(thread_id, message_id))
+
+
+@mcp.tool()
+def list_messages(
+    thread_id: str,
+    limit: Optional[int] = None,
+    order: Optional[str] = None,
+    after: Optional[str] = None,
+    before: Optional[str] = None,
+    run_id: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    List messages for a thread.
+
+    Args:
+        thread_id: The ID of the thread to list messages for
+        limit: Optional limit on number of messages (1-100, default 20)
+        order: Optional sort order ('asc' or 'desc', default 'desc')
+        after: Optional cursor for pagination (get messages after this ID)
+        before: Optional cursor for pagination (get messages before this ID)
+        run_id: Optional filter for messages from a specific run
+    """
+    return cast(
+        Dict[str, Any],
+        tools_list_messages(
+            thread_id=thread_id,
+            limit=limit,
+            order=order,
+            after=after,
+            before=before,
+            run_id=run_id,
+        ),
+    )
+
+
+@mcp.tool()
+def modify_message(
+    thread_id: str,
+    message_id: str,
+    metadata: Optional[Dict[str, str]] = None,
+) -> Dict[str, Any]:
+    """
+    Modify a message.
+
+    Args:
+        thread_id: The ID of the thread the message belongs to
+        message_id: The ID of the message to modify
+        metadata: Optional key-value pairs (max 16 pairs)
+    """
+    return cast(
+        Dict[str, Any],
+        tools_modify_message(
+            thread_id=thread_id,
+            message_id=message_id,
+            metadata=metadata,
+        ),
+    )
+
+
+@mcp.tool()
+def delete_message(thread_id: str, message_id: str) -> Dict[str, Any]:
+    """
+    Delete a message.
+
+    Args:
+        thread_id: The ID of the thread the message belongs to
+        message_id: The ID of the message to delete
+    """
+    return cast(Dict[str, Any], tools_delete_message(thread_id, message_id))
 
 
 # Run Tools
