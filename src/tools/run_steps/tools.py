@@ -27,13 +27,13 @@ def list_run_steps(
     List run steps for a run.
 
     Args:
-        thread_id: The ID of the thread the run belongs to
-        run_id: The ID of the run to list steps for
-        limit: Optional limit on number of steps (1-100, default 20)
-        order: Optional sort order ('asc' or 'desc', default 'desc')
-        after: Optional cursor for pagination (get steps after this ID)
-        before: Optional cursor for pagination (get steps before this ID)
-        include: Optional list of additional fields to include in the response
+        thread_id: (REQUIRED) The ID of the thread the run belongs to
+        run_id: (REQUIRED) The ID of the run to list steps for
+        limit: Limit on number of steps (1-100, default 20)
+        order: Sort order ('asc' or 'desc', default 'desc')
+        after: Cursor for pagination (get steps after this ID)
+        before: Cursor for pagination (get steps before this ID)
+        include: List of additional fields to include in the response
                 Currently only supports
                 'step_details.tool_calls[*].file_search.results[*].content'
 
@@ -72,10 +72,10 @@ def get_run_step(
     Get run step by ID.
 
     Args:
-        thread_id: The ID of the thread the run belongs to
-        run_id: The ID of the run the step belongs to
-        step_id: The ID of the run step to retrieve
-        include: Optional list of additional fields to include in the response
+        thread_id: (REQUIRED) The ID of the thread the run belongs to
+        run_id: (REQUIRED) The ID of the run the step belongs to
+        step_id: (REQUIRED) The ID of the run step to retrieve
+        include: List of additional fields to include in the response
                 Currently only supports
                 'step_details.tool_calls[*].file_search.results[*].content'
 
