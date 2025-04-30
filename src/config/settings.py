@@ -10,7 +10,6 @@ class Settings(BaseSettings):
 
     # Environment
     ENVIRONMENT: str = "development"
-    DEBUG: bool = False
 
     # Project
     PROJECT_NAME: str = "openai-assistant-mcp"
@@ -27,9 +26,6 @@ class Settings(BaseSettings):
     # CORS
     BACKEND_CORS_ORIGINS: List[str] = []
 
-    # OpenAI Settings
-    OPENAI_API_KEY: str = ""
-
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     @classmethod
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> Union[List[str], str]:
@@ -40,17 +36,8 @@ class Settings(BaseSettings):
             return v
         raise ValueError(v)
 
-    # Rate Limiting
-    RATE_LIMIT_DEFAULT: int = 100  # requests per minute
-    RATE_LIMIT_BURST: int = 200
-
-    # Logging
-    LOG_LEVEL: str = "INFO"
-    LOG_FORMAT: str = "json"  # Available formats: json, text, structured
-    LOG_EXTRA_FIELDS: list[str] = []  # Additional fields for logs
-
-    # Feature Flags
-    ENABLE_AUTH: bool = True  # Feature flag for authentication
+    # OpenAI Settings
+    OPENAI_API_KEY: str = ""
 
     model_config = {
         "env_file": ".env",
