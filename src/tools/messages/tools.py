@@ -32,11 +32,12 @@ def create_message(
     Create a message.
 
     Args:
-        thread_id: The ID of the thread to create a message for
-        role: The role of the entity creating the message ('user' or 'assistant')
-        content: The content of the message (string or list of content parts)
-        attachments: Optional list of file attachments
-        metadata: Optional key-value pairs (max 16 pairs)
+        thread_id: (REQUIRED) The ID of the thread to create a message for
+        role: (REQUIRED) The role of the entity creating the message
+            ('user' or 'assistant')
+        content: (REQUIRED) The content of the message (string or list of content parts)
+        attachments: List of file attachments
+        metadata: Key-value pairs (max 16 pairs)
 
     Returns:
         Dict containing created message data
@@ -90,12 +91,12 @@ def list_messages(
     List messages for a thread.
 
     Args:
-        thread_id: The ID of the thread to list messages for
-        limit: Optional limit on number of messages (1-100, default 20)
-        order: Optional sort order ('asc' or 'desc', default 'desc')
-        after: Optional cursor for pagination (get messages after this ID)
-        before: Optional cursor for pagination (get messages before this ID)
-        run_id: Optional filter for messages from a specific run
+        thread_id: (REQUIRED) The ID of the thread to list messages for
+        limit: Limit on number of messages (1-100, default 20)
+        order: Sort order ('asc' or 'desc', default 'desc')
+        after: Cursor for pagination (get messages after this ID)
+        before: Cursor for pagination (get messages before this ID)
+        run_id: Filter for messages from a specific run
 
     Returns:
         Dict containing list of messages
@@ -123,8 +124,8 @@ def get_message(thread_id: str, message_id: str) -> Dict[str, Any]:
     Get message by ID.
 
     Args:
-        thread_id: The ID of the thread the message belongs to
-        message_id: The ID of the message to retrieve
+        thread_id: (REQUIRED) The ID of the thread the message belongs to
+        message_id: (REQUIRED) The ID of the message to retrieve
 
     Returns:
         Dict containing message data
@@ -146,9 +147,9 @@ def modify_message(
     Modify a message.
 
     Args:
-        thread_id: The ID of the thread the message belongs to
-        message_id: The ID of the message to modify
-        metadata: Optional key-value pairs (max 16 pairs)
+        thread_id: (REQUIRED) The ID of the thread the message belongs to
+        message_id: (REQUIRED) The ID of the message to modify
+        metadata: Key-value pairs (max 16 pairs)
 
     Returns:
         Dict containing modified message data
@@ -168,8 +169,8 @@ def delete_message(thread_id: str, message_id: str) -> Dict[str, Any]:
     Delete a message.
 
     Args:
-        thread_id: The ID of the thread the message belongs to
-        message_id: The ID of the message to delete
+        thread_id: (REQUIRED) The ID of the thread the message belongs to
+        message_id: (REQUIRED) The ID of the message to delete
 
     Returns:
         Dict containing deletion status

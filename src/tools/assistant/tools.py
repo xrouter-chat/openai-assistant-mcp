@@ -37,17 +37,17 @@ def create_assistant(
     Create an assistant.
 
     Args:
-        model: ID of the model to use
-        name: Optional name of the assistant (max 256 chars)
-        description: Optional description of the assistant (max 512 chars)
-        instructions: Optional system instructions (max 256k chars)
-        tools: Optional list of tools (max 128 tools)
-        tool_resources: Optional resources for tools
-        metadata: Optional key-value pairs (max 16 pairs)
-        temperature: Optional sampling temperature (0-2)
-        top_p: Optional nucleus sampling parameter (0-1)
-        response_format: Optional output format specification
-        reasoning_effort: Optional reasoning effort level (low/medium/high)
+        model: (REQUIRED) ID of the model to use
+        name: Name of the assistant (max 256 chars)
+        description: Description of the assistant (max 512 chars)
+        instructions: System instructions (max 256k chars)
+        tools: List of tools (max 128 tools)
+        tool_resources: Resources for tools
+        metadata: Key-value pairs (max 16 pairs)
+        temperature: Sampling temperature (0-2)
+        top_p: Nucleus sampling parameter (0-1)
+        response_format: Output format specification
+        reasoning_effort: Reasoning effort level (low/medium/high)
 
     Returns:
         Dict containing created assistant data
@@ -89,7 +89,7 @@ def get_assistant(assistant_id: str) -> Dict[str, Any]:
     Get assistant by ID.
 
     Args:
-        assistant_id: The ID of the assistant to retrieve
+        assistant_id: (REQUIRED) The ID of the assistant to retrieve
 
     Returns:
         Dict containing assistant data
@@ -140,18 +140,18 @@ def modify_assistant(
     Modify an assistant.
 
     Args:
-        assistant_id: The ID of the assistant to modify
-        model: Optional ID of the model to use
-        name: Optional name of the assistant (max 256 chars)
-        description: Optional description of the assistant (max 512 chars)
-        instructions: Optional system instructions (max 256k chars)
-        tools: Optional list of tools (max 128 tools)
-        tool_resources: Optional resources for tools
-        metadata: Optional key-value pairs (max 16 pairs)
-        temperature: Optional sampling temperature (0-2)
-        top_p: Optional nucleus sampling parameter (0-1)
-        response_format: Optional output format specification
-        reasoning_effort: Optional reasoning effort level (low/medium/high)
+        assistant_id: (REQUIRED) The ID of the assistant to modify
+        model: ID of the model to use
+        name: Name of the assistant (max 256 chars)
+        description: Description of the assistant (max 512 chars)
+        instructions: System instructions (max 256k chars)
+        tools: List of tools (max 128 tools)
+        tool_resources: Resources for tools
+        metadata: Key-value pairs (max 16 pairs)
+        temperature: Sampling temperature (0-2)
+        top_p: Nucleus sampling parameter (0-1)
+        response_format: Output format specification
+        reasoning_effort: Reasoning effort level (low/medium/high)
 
     Returns:
         Dict containing modified assistant data
@@ -181,7 +181,7 @@ def delete_assistant(assistant_id: str) -> Dict[str, Any]:
     Delete an assistant.
 
     Args:
-        assistant_id: The ID of the assistant to delete
+        assistant_id: (REQUIRED) The ID of the assistant to delete
 
     Returns:
         Dict containing deletion status

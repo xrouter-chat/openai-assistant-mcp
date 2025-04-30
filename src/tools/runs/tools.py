@@ -40,22 +40,22 @@ def create_run(
     Create a run.
 
     Args:
-        thread_id: The ID of the thread to run
-        assistant_id: The ID of the assistant to use
-        model: Optional model override for this run
-        instructions: Optional instructions override for this run
-        additional_instructions: Optional additional instructions for this run
-        tools: Optional list of tools for this run
-        metadata: Optional key-value pairs (max 16 pairs)
-        stream: Optional boolean for streaming mode
-        temperature: Optional sampling temperature (0-2)
-        top_p: Optional nucleus sampling value (0-1)
-        max_completion_tokens: Optional maximum completion tokens
-        max_prompt_tokens: Optional maximum prompt tokens
-        response_format: Optional response format configuration
-        tool_choice: Optional tool choice configuration
-        truncation_strategy: Optional truncation strategy
-        parallel_tool_calls: Optional boolean for parallel tool calls
+        thread_id: (REQUIRED) The ID of the thread to run
+        assistant_id: (REQUIRED) The ID of the assistant to use
+        model: Model override for this run
+        instructions: Instructions override for this run
+        additional_instructions: Additional instructions for this run
+        tools: List of tools for this run
+        metadata: Key-value pairs (max 16 pairs)
+        stream: Boolean for streaming mode
+        temperature: Sampling temperature (0-2)
+        top_p: Nucleus sampling value (0-1)
+        max_completion_tokens: Maximum completion tokens
+        max_prompt_tokens: Maximum prompt tokens
+        response_format: Response format configuration
+        tool_choice: Tool choice configuration
+        truncation_strategy: Truncation strategy
+        parallel_tool_calls: Boolean for parallel tool calls
 
     Returns:
         Dict containing created run data
@@ -126,21 +126,21 @@ def create_thread_and_run(
     Create a thread and run it in one request.
 
     Args:
-        assistant_id: The ID of the assistant to use
-        thread: Optional thread configuration
-        model: Optional model override for this run
-        instructions: Optional instructions override for this run
-        tools: Optional list of tools for this run
-        metadata: Optional key-value pairs (max 16 pairs)
-        stream: Optional boolean for streaming mode
-        temperature: Optional sampling temperature (0-2)
-        top_p: Optional nucleus sampling value (0-1)
-        max_completion_tokens: Optional maximum completion tokens
-        max_prompt_tokens: Optional maximum prompt tokens
-        response_format: Optional response format configuration
-        tool_choice: Optional tool choice configuration
-        truncation_strategy: Optional truncation strategy
-        parallel_tool_calls: Optional boolean for parallel tool calls
+        assistant_id: (REQUIRED) The ID of the assistant to use
+        thread: Thread configuration
+        model: Model override for this run
+        instructions: Instructions override for this run
+        tools: List of tools for this run
+        metadata: Key-value pairs (max 16 pairs)
+        stream: Boolean for streaming mode
+        temperature: Sampling temperature (0-2)
+        top_p: Nucleus sampling value (0-1)
+        max_completion_tokens: Maximum completion tokens
+        max_prompt_tokens: Maximum prompt tokens
+        response_format: Response format configuration
+        tool_choice: Tool choice configuration
+        truncation_strategy: Truncation strategy
+        parallel_tool_calls: Boolean for parallel tool calls
 
     Returns:
         Dict containing created run data
@@ -197,11 +197,11 @@ def list_runs(
     List runs for a thread.
 
     Args:
-        thread_id: The ID of the thread to list runs for
-        limit: Optional limit on number of runs (1-100, default 20)
-        order: Optional sort order ('asc' or 'desc', default 'desc')
-        after: Optional cursor for pagination (get runs after this ID)
-        before: Optional cursor for pagination (get runs before this ID)
+        thread_id: (REQUIRED) The ID of the thread to list runs for
+        limit: Limit on number of runs (1-100, default 20)
+        order: Sort order ('asc' or 'desc', default 'desc')
+        after: Cursor for pagination (get runs after this ID)
+        before: Cursor for pagination (get runs before this ID)
 
     Returns:
         Dict containing list of runs
@@ -234,8 +234,8 @@ def get_run(thread_id: str, run_id: str) -> Dict[str, Any]:
     Get run by ID.
 
     Args:
-        thread_id: The ID of the thread the run belongs to
-        run_id: The ID of the run to retrieve
+        thread_id: (REQUIRED) The ID of the thread the run belongs to
+        run_id: (REQUIRED) The ID of the run to retrieve
 
     Returns:
         Dict containing run data
@@ -255,9 +255,9 @@ def modify_run(
     Modify a run.
 
     Args:
-        thread_id: The ID of the thread the run belongs to
-        run_id: The ID of the run to modify
-        metadata: Optional key-value pairs (max 16 pairs)
+        thread_id: (REQUIRED) The ID of the thread the run belongs to
+        run_id: (REQUIRED) The ID of the run to modify
+        metadata: Key-value pairs (max 16 pairs)
 
     Returns:
         Dict containing modified run data
@@ -280,10 +280,10 @@ def submit_tool_outputs(
     Submit outputs for tool calls.
 
     Args:
-        thread_id: The ID of the thread the run belongs to
-        run_id: The ID of the run to submit outputs for
-        tool_outputs: List of tool outputs with tool_call_id and output
-        stream: Optional boolean for streaming mode
+        thread_id: (REQUIRED) The ID of the thread the run belongs to
+        run_id: (REQUIRED) The ID of the run to submit outputs for
+        tool_outputs: (REQUIRED) List of tool outputs with tool_call_id and output
+        stream: Boolean for streaming mode
 
     Returns:
         Dict containing updated run data
@@ -308,8 +308,8 @@ def cancel_run(thread_id: str, run_id: str) -> Dict[str, Any]:
     Cancel a run.
 
     Args:
-        thread_id: The ID of the thread the run belongs to
-        run_id: The ID of the run to cancel
+        thread_id: (REQUIRED) The ID of the thread the run belongs to
+        run_id: (REQUIRED) The ID of the run to cancel
 
     Returns:
         Dict containing cancelled run data

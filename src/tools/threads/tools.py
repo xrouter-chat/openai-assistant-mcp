@@ -30,9 +30,9 @@ def create_thread(
     Create a thread.
 
     Args:
-        messages: Optional list of messages to start the thread with
-        metadata: Optional key-value pairs (max 16 pairs)
-        tool_resources: Optional resources for tools
+        messages: List of messages to start the thread with
+        metadata: Key-value pairs (max 16 pairs)
+        tool_resources: Resources for tools
 
     Returns:
         Dict containing created thread data
@@ -92,7 +92,7 @@ def get_thread(thread_id: str) -> Dict[str, Any]:
     Get thread by ID.
 
     Args:
-        thread_id: The ID of the thread to retrieve
+        thread_id: (REQUIRED) The ID of the thread to retrieve
 
     Returns:
         Dict containing thread data
@@ -112,9 +112,9 @@ def modify_thread(
     Modify a thread.
 
     Args:
-        thread_id: The ID of the thread to modify
-        metadata: Optional key-value pairs (max 16 pairs)
-        tool_resources: Optional resources for tools
+        thread_id: (REQUIRED) The ID of the thread to modify
+        metadata: Key-value pairs (max 16 pairs)
+        tool_resources: Resources for tools
 
     Returns:
         Dict containing modified thread data
@@ -143,7 +143,7 @@ def delete_thread(thread_id: str) -> Dict[str, Any]:
     Delete a thread.
 
     Args:
-        thread_id: The ID of the thread to delete
+        thread_id: (REQUIRED) The ID of the thread to delete
 
     Returns:
         Dict containing deletion status
