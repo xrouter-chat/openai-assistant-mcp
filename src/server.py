@@ -7,6 +7,7 @@ import logging
 from typing import Any, Dict, List, Literal, Optional, Union, cast
 
 from mcp.server.fastmcp import FastMCP
+from openai.types.beta.threads.runs import RunStepInclude
 
 from tools import Metadata, ResponseFormat, Tool, ToolResources
 from tools import create_assistant as tools_create_assistant  # Tools; Models
@@ -20,6 +21,8 @@ from tools.messages import get_message as tools_get_message
 from tools.messages import list_messages as tools_list_messages
 from tools.messages import modify_message as tools_modify_message
 from tools.messages.models import MessageContent
+from tools.run_steps import get_run_step as tools_get_run_step
+from tools.run_steps import list_run_steps as tools_list_run_steps
 from tools.runs import cancel_run as tools_cancel_run
 from tools.runs import create_run as tools_create_run
 from tools.runs import create_thread_and_run as tools_create_thread_and_run
@@ -628,9 +631,75 @@ def cancel_run(thread_id: str, run_id: str) -> Dict[str, Any]:
 
 
 # Run Step Tools
-# TODO: Implement run step tools
-# - get_run_step
-# - list_run_steps
+@mcp.tool()
+def list_run_steps(
+    thread_id: str,
+    run_id: str,
+    limit: Optional[int] = None,
+    order: Optional[Literal["asc", "desc"]] = None,
+    after: Optional[str] = None,
+    before: Optional[str] = None,
+    include: Optional[List[RunStepInclude]] = None,
+) -> Dict[str, Any]:
+    """
+    List run steps for a run.
+
+    Use this to view the sequence of steps taken during a run.
+
+    Args:
+        thread_id: (REQUIRED) The ID of the thread the run belongs to
+        run_id: (REQUIRED) The ID of the run to list steps for
+        limit: Limit on number of steps (1-100, default 20)
+        order: Sort order ('asc' or 'desc', default 'desc')
+        after: Cursor for pagination (get steps after this ID)
+        before: Cursor for pagination (get steps before this ID)
+        include: List of additional fields to include in the response
+                Currently only supports
+                'step_details.tool_calls[*].file_search.results[*].content'
+    """
+    return cast(
+        Dict[str, Any],
+        tools_list_run_steps(
+            thread_id=thread_id,
+            run_id=run_id,
+            limit=limit,
+            order=order,
+            after=after,
+            before=before,
+            include=include,
+        ),
+    )
+
+
+@mcp.tool()
+def get_run_step(
+    thread_id: str,
+    run_id: str,
+    step_id: str,
+    include: Optional[List[RunStepInclude]] = None,
+) -> Dict[str, Any]:
+    """
+    Get run step by ID.
+
+    Use this to retrieve details about a specific step in a run.
+
+    Args:
+        thread_id: (REQUIRED) The ID of the thread the run belongs to
+        run_id: (REQUIRED) The ID of the run the step belongs to
+        step_id: (REQUIRED) The ID of the run step to retrieve
+        include: List of additional fields to include in the response
+                Currently only supports
+                'step_details.tool_calls[*].file_search.results[*].content'
+    """
+    return cast(
+        Dict[str, Any],
+        tools_get_run_step(
+            thread_id=thread_id,
+            run_id=run_id,
+            step_id=step_id,
+            include=include,
+        ),
+    )
 
 
 if __name__ == "__main__":
