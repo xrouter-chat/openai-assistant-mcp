@@ -16,7 +16,7 @@ from .models import (
     ThreadObject,
 )
 
-logger = logging.getLogger("openai-assistant-mcp")
+logger = logging.getLogger(__name__)
 settings = Settings()
 client = OpenAI()
 

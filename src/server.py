@@ -43,11 +43,11 @@ from tools.threads import get_thread as tools_get_thread
 from tools.threads import modify_thread as tools_modify_thread
 
 # Get logger
-logger = logging.getLogger("openai-assistant-mcp")
+logger = logging.getLogger(__name__)
 
 # Initialize FastMCP server
 logger.info("Creating FastMCP server")
-mcp = FastMCP("openai-assistant")
+mcp = FastMCP("openai-assistant-api")
 logger.info("FastMCP server created: %s", mcp)
 
 

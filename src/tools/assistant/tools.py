@@ -15,7 +15,7 @@ from .models import (
     ToolResources,
 )
 
-logger = logging.getLogger("openai-assistant-mcp")
+logger = logging.getLogger(__name__)
 settings = Settings()
 client = OpenAI()
 

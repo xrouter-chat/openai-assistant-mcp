@@ -9,7 +9,7 @@ from src.config.settings import Settings
 from ..models import CodeInterpreterTool, FileSearchTool, FunctionTool, ResponseFormat
 from .models import RunListResponse, RunObject, ToolChoice, TruncationStrategy
 
-logger = logging.getLogger("openai-assistant-mcp")
+logger = logging.getLogger(__name__)
 settings = Settings()
 client = OpenAI()
 

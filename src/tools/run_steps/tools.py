@@ -9,7 +9,7 @@ from src.config.settings import Settings
 
 from .models import RunStepListResponse, RunStepObject
 
-logger = logging.getLogger("openai-assistant-mcp")
+logger = logging.getLogger(__name__)
 settings = Settings()
 client = OpenAI()
 
