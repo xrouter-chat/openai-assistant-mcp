@@ -54,48 +54,62 @@ You can set them all at once using a .env file or export them in your shell:
 PYTHONPATH=. OPENAI_API_KEY=your_key mcp dev src/server.py
 ```
 
-### Accessing the Server
+## Server Documentation
 
-Once running, you can access:
-- MCP Inspector UI: http://localhost:8080
-- MCP Server API: http://localhost:8001 (configurable via PORT)
+For detailed documentation about the server's tools and capabilities, including how to use them in agent development, see [Server Documentation](docs/server.md). The documentation includes:
 
-### Development Tips
+- Complete API reference for all available tools
+- Input/output schemas for each tool
+- Error handling information
+- Examples of using tools in agent development
 
-1. Use the MCP Inspector to:
-   - View available tools and resources
-   - Test API calls
-   - Debug responses
+### Example: Creating an Assistant Agent
 
-2. Monitor the terminal output for:
-   - Server logs
-   - Error messages
-   - Request/response information
+Here's a basic example of how to use the server's tools to create an assistant and start a conversation:
 
-3. Hot reload:
-   - The server will automatically reload when you make changes to the code
-   - Keep the terminal output visible to catch any errors during reload
+```python
+# 1. Create an assistant
+assistant = use_mcp_tool("create_assistant", {
+    "model": "gpt-4-turbo-preview",
+    "name": "Math Tutor",
+    "instructions": "You are a helpful math tutor..."
+})
 
-### Troubleshooting
+# 2. Create a thread
+thread = use_mcp_tool("create_thread")
 
-If you encounter import errors:
-1. Verify you're in the project root directory (where the `src` folder is)
-2. Ensure PYTHONPATH is set correctly (should be `.` when in project root)
-3. Check that all dependencies are installed with `uv pip install -e .`
-4. Verify Python version (3.11+ required)
+# 3. Add a message to the thread
+message = use_mcp_tool("create_message", {
+    "thread_id": thread["id"],
+    "role": "user",
+    "content": "Can you help me solve this equation: 2x + 5 = 13?"
+})
 
-If you encounter API errors:
-1. Verify your OPENAI_API_KEY is set correctly
-2. Check the API rate limits in your OpenAI dashboard
-3. Monitor the server logs for detailed error messages
+# 4. Run the assistant
+run = use_mcp_tool("create_run", {
+    "thread_id": thread["id"],
+    "assistant_id": assistant["id"]
+})
+
+# 5. Check run status and get response
+run_status = use_mcp_tool("retrieve_run", {
+    "thread_id": thread["id"],
+    "run_id": run["id"]
+})
+
+messages = use_mcp_tool("list_messages", {
+    "thread_id": thread["id"],
+    "order": "desc",
+    "limit": 1
+})
+```
 
 ## Project Structure
 
 ```
 .
 ├── docs/
-│   ├── mcp-servers/           # MCP server documentation
-│   │   └── openai-assistant/  # OpenAI Assistant MCP server docs
+│   ├── server.md              # Detailed server documentation
 │   └── openai-assistant/      # OpenAI Assistant API documentation
 ├── src/
 │   ├── config/               # Server configuration
