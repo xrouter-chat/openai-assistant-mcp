@@ -88,13 +88,9 @@ def get_assistant(assistant_id: str) -> Dict[str, Any]:
     return cast(Dict[str, Any], tools_get_assistant(assistant_id))
 
 
-@mcp.resource("assistants")
+@mcp.tool()
 def list_assistants() -> Dict[str, Any]:
-    """
-    List assistants.
-
-    This is an MCP resource since it takes no arguments.
-    """
+    """List assistants."""
     return cast(Dict[str, Any], tools_list_assistants())
 
 
