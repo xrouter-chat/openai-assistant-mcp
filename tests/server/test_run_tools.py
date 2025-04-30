@@ -59,8 +59,34 @@ EXAMPLE_CANCELLED_RUN = {
 }
 
 EXAMPLE_THREAD_AND_RUN = {
+    "id": "run_abc123",
+    "object": "thread.run",
+    "created_at": 1699076792,
+    "assistant_id": "asst_abc123",
     "thread_id": "thread_abc123",
-    "run_id": "run_abc123",
+    "status": "queued",
+    "started_at": None,
+    "expires_at": 1699077392,
+    "cancelled_at": None,
+    "failed_at": None,
+    "completed_at": None,
+    "required_action": None,
+    "last_error": None,
+    "model": "gpt-4o",
+    "instructions": "You are a helpful assistant.",
+    "tools": [],
+    "tool_resources": {},
+    "metadata": {},
+    "temperature": 1.0,
+    "top_p": 1.0,
+    "max_completion_tokens": None,
+    "max_prompt_tokens": None,
+    "truncation_strategy": {"type": "auto", "last_messages": None},
+    "incomplete_details": None,
+    "usage": None,
+    "response_format": "auto",
+    "tool_choice": "auto",
+    "parallel_tool_calls": True,
 }
 
 
@@ -107,8 +133,14 @@ def test_create_thread_and_run(mock_openai_client):
         model="gpt-4",
     )
 
+    assert result["id"] == "run_abc123"
+    assert result["object"] == "thread.run"
     assert result["thread_id"] == "thread_abc123"
-    assert result["run_id"] == "run_abc123"
+    assert result["assistant_id"] == "asst_abc123"
+    assert result["status"] == "queued"
+    assert result["model"] == "gpt-4o"
+    assert isinstance(result["created_at"], int)
+    assert isinstance(result["expires_at"], int)
 
     mock_openai_client.beta.threads.create_and_run.assert_called_once_with(
         assistant_id="asst_abc123",
