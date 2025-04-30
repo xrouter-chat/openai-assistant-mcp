@@ -52,18 +52,21 @@ def create_assistant(
     """
     Create an assistant.
 
+    This is typically the first step in the workflow before creating threads
+    and messages.
+
     Args:
-        model: ID of the model to use
-        name: Optional name of the assistant (max 256 chars)
-        description: Optional description of the assistant (max 512 chars)
-        instructions: Optional system instructions (max 256k chars)
-        tools: Optional list of tools (max 128 tools)
-        tool_resources: Optional resources for tools
-        metadata: Optional key-value pairs (max 16 pairs)
-        temperature: Optional sampling temperature (0-2)
-        top_p: Optional nucleus sampling parameter (0-1)
-        response_format: Optional output format specification
-        reasoning_effort: Optional reasoning effort level (low/medium/high)
+        model: (REQUIRED) ID of the model to use
+        name: Name of the assistant (max 256 chars)
+        description: Description of the assistant (max 512 chars)
+        instructions: System instructions (max 256k chars)
+        tools: List of tools (max 128 tools)
+        tool_resources: Resources for tools
+        metadata: Key-value pairs (max 16 pairs)
+        temperature: Sampling temperature (0-2)
+        top_p: Nucleus sampling parameter (0-1)
+        response_format: Output format specification
+        reasoning_effort: Reasoning effort level (low/medium/high)
     """
     return cast(
         Dict[str, Any],
@@ -88,15 +91,17 @@ def get_assistant(assistant_id: str) -> Dict[str, Any]:
     """
     Get assistant by ID.
 
+    Use this to retrieve an assistant's configuration after creation.
+
     Args:
-        assistant_id: The ID of the assistant to retrieve
+        assistant_id: (REQUIRED) The ID of the assistant to retrieve
     """
     return cast(Dict[str, Any], tools_get_assistant(assistant_id))
 
 
 @mcp.tool()
 def list_assistants() -> Dict[str, Any]:
-    """List assistants."""
+    """List assistants. Use this to view all available assistants."""
     return cast(Dict[str, Any], tools_list_assistants())
 
 
@@ -118,19 +123,21 @@ def modify_assistant(
     """
     Modify an assistant.
 
+    Use this to update an assistant's configuration after creation.
+
     Args:
-        assistant_id: The ID of the assistant to modify
-        model: Optional ID of the model to use
-        name: Optional name of the assistant (max 256 chars)
-        description: Optional description of the assistant (max 512 chars)
-        instructions: Optional system instructions (max 256k chars)
-        tools: Optional list of tools (max 128 tools)
-        tool_resources: Optional resources for tools
-        metadata: Optional key-value pairs (max 16 pairs)
-        temperature: Optional sampling temperature (0-2)
-        top_p: Optional nucleus sampling parameter (0-1)
-        response_format: Optional output format specification
-        reasoning_effort: Optional reasoning effort level (low/medium/high)
+        assistant_id: (REQUIRED) The ID of the assistant to modify
+        model: ID of the model to use
+        name: Name of the assistant (max 256 chars)
+        description: Description of the assistant (max 512 chars)
+        instructions: System instructions (max 256k chars)
+        tools: List of tools (max 128 tools)
+        tool_resources: Resources for tools
+        metadata: Key-value pairs (max 16 pairs)
+        temperature: Sampling temperature (0-2)
+        top_p: Nucleus sampling parameter (0-1)
+        response_format: Output format specification
+        reasoning_effort: Reasoning effort level (low/medium/high)
     """
     return cast(
         Dict[str, Any],
@@ -156,8 +163,10 @@ def delete_assistant(assistant_id: str) -> Dict[str, Any]:
     """
     Delete an assistant.
 
+    Permanently removes an assistant and its configuration.
+
     Args:
-        assistant_id: The ID of the assistant to delete
+        assistant_id: (REQUIRED) The ID of the assistant to delete
     """
     return cast(Dict[str, Any], tools_delete_assistant(assistant_id))
 
@@ -172,10 +181,13 @@ def create_thread(
     """
     Create a thread.
 
+    This is done after creating an assistant and before adding messages.
+    A thread maintains the conversation state between the assistant and user.
+
     Args:
-        messages: Optional list of messages to start the thread with
-        metadata: Optional key-value pairs (max 16 pairs)
-        tool_resources: Optional resources for tools
+        messages: List of messages to start the thread with
+        metadata: Key-value pairs (max 16 pairs)
+        tool_resources: Resources for tools
     """
     return cast(Dict[str, Any], tools_create_thread(messages, metadata, tool_resources))
 
@@ -185,8 +197,10 @@ def get_thread(thread_id: str) -> Dict[str, Any]:
     """
     Get thread by ID.
 
+    Use this to retrieve a thread's details after creation.
+
     Args:
-        thread_id: The ID of the thread to retrieve
+        thread_id: (REQUIRED) The ID of the thread to retrieve
     """
     return cast(Dict[str, Any], tools_get_thread(thread_id))
 
@@ -200,10 +214,12 @@ def modify_thread(
     """
     Modify a thread.
 
+    Use this to update a thread's metadata or tool resources.
+
     Args:
-        thread_id: The ID of the thread to modify
-        metadata: Optional key-value pairs (max 16 pairs)
-        tool_resources: Optional resources for tools
+        thread_id: (REQUIRED) The ID of the thread to modify
+        metadata: Key-value pairs (max 16 pairs)
+        tool_resources: Resources for tools
     """
     return cast(
         Dict[str, Any], tools_modify_thread(thread_id, metadata, tool_resources)
@@ -215,8 +231,10 @@ def delete_thread(thread_id: str) -> Dict[str, Any]:
     """
     Delete a thread.
 
+    Permanently removes a thread and all its messages.
+
     Args:
-        thread_id: The ID of the thread to delete
+        thread_id: (REQUIRED) The ID of the thread to delete
     """
     return cast(Dict[str, Any], tools_delete_thread(thread_id))
 
@@ -231,14 +249,19 @@ def create_message(
     metadata: Optional[Dict[str, str]] = None,
 ) -> Dict[str, Any]:
     """
-    Create a message.
+    Create a message in a thread.
+
+    Messages are added to threads to build conversations.
+    User messages are added when the user sends input, assistant messages
+    when the assistant responds.
 
     Args:
-        thread_id: The ID of the thread to create a message for
-        role: The role of the entity creating the message ('user' or 'assistant')
-        content: The content of the message (string or list of content parts)
-        attachments: Optional list of file attachments
-        metadata: Optional key-value pairs (max 16 pairs)
+        thread_id: (REQUIRED) The ID of the thread to create a message for
+        role: (REQUIRED) The role of the entity creating the message
+            ('user' or 'assistant')
+        content: (REQUIRED) The content of the message (string or list of content parts)
+        attachments: List of file attachments
+        metadata: Key-value pairs (max 16 pairs)
     """
     return cast(
         Dict[str, Any],
@@ -257,9 +280,11 @@ def get_message(thread_id: str, message_id: str) -> Dict[str, Any]:
     """
     Get message by ID.
 
+    Use this to retrieve a specific message's details from a thread.
+
     Args:
-        thread_id: The ID of the thread the message belongs to
-        message_id: The ID of the message to retrieve
+        thread_id: (REQUIRED) The ID of the thread the message belongs to
+        message_id: (REQUIRED) The ID of the message to retrieve
     """
     return cast(Dict[str, Any], tools_get_message(thread_id, message_id))
 
@@ -276,13 +301,15 @@ def list_messages(
     """
     List messages for a thread.
 
+    Use this to retrieve the conversation history in a thread.
+
     Args:
-        thread_id: The ID of the thread to list messages for
-        limit: Optional limit on number of messages (1-100, default 20)
-        order: Optional sort order ('asc' or 'desc', default 'desc')
-        after: Optional cursor for pagination (get messages after this ID)
-        before: Optional cursor for pagination (get messages before this ID)
-        run_id: Optional filter for messages from a specific run
+        thread_id: (REQUIRED) The ID of the thread to list messages for
+        limit: Limit on number of messages (1-100, default 20)
+        order: Sort order ('asc' or 'desc', default 'desc')
+        after: Cursor for pagination (get messages after this ID)
+        before: Cursor for pagination (get messages before this ID)
+        run_id: Filter for messages from a specific run
     """
     return cast(
         Dict[str, Any],
@@ -306,10 +333,12 @@ def modify_message(
     """
     Modify a message.
 
+    Use this to update message metadata after creation.
+
     Args:
-        thread_id: The ID of the thread the message belongs to
-        message_id: The ID of the message to modify
-        metadata: Optional key-value pairs (max 16 pairs)
+        thread_id: (REQUIRED) The ID of the thread the message belongs to
+        message_id: (REQUIRED) The ID of the message to modify
+        metadata: Key-value pairs (max 16 pairs)
     """
     return cast(
         Dict[str, Any],
@@ -326,9 +355,11 @@ def delete_message(thread_id: str, message_id: str) -> Dict[str, Any]:
     """
     Delete a message.
 
+    Permanently removes a message from a thread.
+
     Args:
-        thread_id: The ID of the thread the message belongs to
-        message_id: The ID of the message to delete
+        thread_id: (REQUIRED) The ID of the thread the message belongs to
+        message_id: (REQUIRED) The ID of the message to delete
     """
     return cast(Dict[str, Any], tools_delete_message(thread_id, message_id))
 
