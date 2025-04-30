@@ -5,7 +5,6 @@ from .assistant import (  # Assistant Tools & Models
     BaseAssistant,
     CreateAssistantRequest,
     ModifyAssistantRequest,
-    ResponseFormat,
     create_assistant,
     delete_assistant,
     get_assistant,
@@ -25,6 +24,7 @@ from .models import (  # Common Models
     CodeInterpreterTool,
     FileSearchTool,
     Metadata,
+    ResponseFormat,
     Tool,
     ToolResources,
 )
@@ -62,11 +62,11 @@ __all__ = [
     "BaseAssistant",
     "CreateAssistantRequest",
     "ModifyAssistantRequest",
-    "ResponseFormat",
     "Tool",
     # Common Models
     "CodeInterpreterTool",
     "FileSearchTool",
     "Metadata",
     "ToolResources",
+    "ResponseFormat",
 ]

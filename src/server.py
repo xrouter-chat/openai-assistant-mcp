@@ -20,6 +20,20 @@ from tools.messages import get_message as tools_get_message
 from tools.messages import list_messages as tools_list_messages
 from tools.messages import modify_message as tools_modify_message
 from tools.messages.models import MessageContent
+from tools.runs import cancel_run as tools_cancel_run
+from tools.runs import create_run as tools_create_run
+from tools.runs import create_thread_and_run as tools_create_thread_and_run
+from tools.runs import get_run as tools_get_run
+from tools.runs import list_runs as tools_list_runs
+from tools.runs import modify_run as tools_modify_run
+from tools.runs import submit_tool_outputs as tools_submit_tool_outputs
+from tools.runs.models import (
+    CodeInterpreterTool,
+    FileSearchTool,
+    FunctionTool,
+    ToolChoice,
+    TruncationStrategy,
+)
 from tools.threads import create_thread as tools_create_thread
 from tools.threads import delete_thread as tools_delete_thread
 from tools.threads import get_thread as tools_get_thread
@@ -365,13 +379,252 @@ def delete_message(thread_id: str, message_id: str) -> Dict[str, Any]:
 
 
 # Run Tools
-# TODO: Implement run tools
-# - create_run
-# - get_run
-# - modify_run
-# - list_runs
-# - cancel_run
-# - submit_tool_outputs
+@mcp.tool()
+def create_run(
+    thread_id: str,
+    assistant_id: str,
+    model: Optional[str] = None,
+    instructions: Optional[str] = None,
+    additional_instructions: Optional[str] = None,
+    tools: Optional[
+        List[Union[CodeInterpreterTool, FileSearchTool, FunctionTool]]
+    ] = None,
+    metadata: Optional[Dict[str, str]] = None,
+    stream: Optional[bool] = None,
+    temperature: Optional[float] = None,
+    top_p: Optional[float] = None,
+    max_completion_tokens: Optional[int] = None,
+    max_prompt_tokens: Optional[int] = None,
+    response_format: Optional[Union[Literal["auto"], ResponseFormat]] = None,
+    tool_choice: Optional[
+        Union[Literal["none", "auto", "required"], ToolChoice]
+    ] = None,
+    truncation_strategy: Optional[TruncationStrategy] = None,
+    parallel_tool_calls: Optional[bool] = None,
+) -> Dict[str, Any]:
+    """
+    Create a run.
+
+    This starts a new run with the specified assistant in a thread.
+    A run represents the assistant processing messages and performing actions.
+
+    Args:
+        thread_id: (REQUIRED) The ID of the thread to run
+        assistant_id: (REQUIRED) The ID of the assistant to use
+        model: Model override for this run
+        instructions: Instructions override for this run
+        additional_instructions: Additional instructions for this run
+        tools: List of tools for this run
+        metadata: Key-value pairs (max 16 pairs)
+        stream: Boolean for streaming mode
+        temperature: Sampling temperature (0-2)
+        top_p: Nucleus sampling value (0-1)
+        max_completion_tokens: Maximum completion tokens
+        max_prompt_tokens: Maximum prompt tokens
+        response_format: Response format configuration
+        tool_choice: Tool choice configuration
+        truncation_strategy: Truncation strategy
+        parallel_tool_calls: Boolean for parallel tool calls
+    """
+    return cast(
+        Dict[str, Any],
+        tools_create_run(
+            thread_id=thread_id,
+            assistant_id=assistant_id,
+            model=model,
+            instructions=instructions,
+            additional_instructions=additional_instructions,
+            tools=tools,
+            metadata=metadata,
+            stream=stream,
+            temperature=temperature,
+            top_p=top_p,
+            max_completion_tokens=max_completion_tokens,
+            max_prompt_tokens=max_prompt_tokens,
+            response_format=response_format,
+            tool_choice=tool_choice,
+            truncation_strategy=truncation_strategy,
+            parallel_tool_calls=parallel_tool_calls,
+        ),
+    )
+
+
+@mcp.tool()
+def create_thread_and_run(
+    assistant_id: str,
+    thread: Optional[Dict[str, Any]] = None,
+    model: Optional[str] = None,
+    instructions: Optional[str] = None,
+    tools: Optional[
+        List[Union[CodeInterpreterTool, FileSearchTool, FunctionTool]]
+    ] = None,
+    metadata: Optional[Dict[str, str]] = None,
+    stream: Optional[bool] = None,
+    temperature: Optional[float] = None,
+    top_p: Optional[float] = None,
+    max_completion_tokens: Optional[int] = None,
+    max_prompt_tokens: Optional[int] = None,
+    response_format: Optional[Union[Literal["auto"], ResponseFormat]] = None,
+    tool_choice: Optional[
+        Union[Literal["none", "auto", "required"], ToolChoice]
+    ] = None,
+    truncation_strategy: Optional[TruncationStrategy] = None,
+    parallel_tool_calls: Optional[bool] = None,
+) -> Dict[str, Any]:
+    """
+    Create a thread and run it in one request.
+
+    This combines creating a new thread and starting a run into a single operation.
+    Useful when you want to start a fresh conversation with an assistant.
+
+    Args:
+        assistant_id: (REQUIRED) The ID of the assistant to use
+        thread: Thread configuration
+        model: Model override for this run
+        instructions: Instructions override for this run
+        tools: List of tools for this run
+        metadata: Key-value pairs (max 16 pairs)
+        stream: Boolean for streaming mode
+        temperature: Sampling temperature (0-2)
+        top_p: Nucleus sampling value (0-1)
+        max_completion_tokens: Maximum completion tokens
+        max_prompt_tokens: Maximum prompt tokens
+        response_format: Response format configuration
+        tool_choice: Tool choice configuration
+        truncation_strategy: Truncation strategy
+        parallel_tool_calls: Boolean for parallel tool calls
+    """
+    return cast(
+        Dict[str, Any],
+        tools_create_thread_and_run(
+            assistant_id=assistant_id,
+            thread=thread,
+            model=model,
+            instructions=instructions,
+            tools=tools,
+            metadata=metadata,
+            stream=stream,
+            temperature=temperature,
+            top_p=top_p,
+            max_completion_tokens=max_completion_tokens,
+            max_prompt_tokens=max_prompt_tokens,
+            response_format=response_format,
+            tool_choice=tool_choice,
+            truncation_strategy=truncation_strategy,
+            parallel_tool_calls=parallel_tool_calls,
+        ),
+    )
+
+
+@mcp.tool()
+def list_runs(
+    thread_id: str,
+    limit: Optional[int] = None,
+    order: Optional[Literal["asc", "desc"]] = None,
+    after: Optional[str] = None,
+    before: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    List runs for a thread.
+
+    Use this to view the history of runs in a thread.
+
+    Args:
+        thread_id: (REQUIRED) The ID of the thread to list runs for
+        limit: Limit on number of runs (1-100, default 20)
+        order: Sort order ('asc' or 'desc', default 'desc')
+        after: Cursor for pagination (get runs after this ID)
+        before: Cursor for pagination (get runs before this ID)
+    """
+    return cast(
+        Dict[str, Any],
+        tools_list_runs(
+            thread_id=thread_id,
+            limit=limit,
+            order=order,
+            after=after,
+            before=before,
+        ),
+    )
+
+
+@mcp.tool()
+def get_run(thread_id: str, run_id: str) -> Dict[str, Any]:
+    """
+    Get run by ID.
+
+    Use this to retrieve details about a specific run.
+
+    Args:
+        thread_id: (REQUIRED) The ID of the thread the run belongs to
+        run_id: (REQUIRED) The ID of the run to retrieve
+    """
+    return cast(Dict[str, Any], tools_get_run(thread_id=thread_id, run_id=run_id))
+
+
+@mcp.tool()
+def modify_run(
+    thread_id: str,
+    run_id: str,
+    metadata: Optional[Dict[str, str]] = None,
+) -> Dict[str, Any]:
+    """
+    Modify a run.
+
+    Use this to update a run's metadata.
+
+    Args:
+        thread_id: (REQUIRED) The ID of the thread the run belongs to
+        run_id: (REQUIRED) The ID of the run to modify
+        metadata: Key-value pairs (max 16 pairs)
+    """
+    return cast(
+        Dict[str, Any],
+        tools_modify_run(thread_id=thread_id, run_id=run_id, metadata=metadata),
+    )
+
+
+@mcp.tool()
+def submit_tool_outputs(
+    thread_id: str,
+    run_id: str,
+    tool_outputs: List[Dict[str, str]],
+    stream: Optional[bool] = None,
+) -> Dict[str, Any]:
+    """
+    Submit outputs for tool calls.
+
+    Use this to provide the results of tool calls back to the assistant.
+
+    Args:
+        thread_id: (REQUIRED) The ID of the thread the run belongs to
+        run_id: (REQUIRED) The ID of the run to submit outputs for
+        tool_outputs: (REQUIRED) List of tool outputs with tool_call_id and output
+        stream: Boolean for streaming mode
+    """
+    return cast(
+        Dict[str, Any],
+        tools_submit_tool_outputs(
+            thread_id=thread_id,
+            run_id=run_id,
+            tool_outputs=tool_outputs,
+            stream=stream,
+        ),
+    )
+
+
+@mcp.tool()
+def cancel_run(thread_id: str, run_id: str) -> Dict[str, Any]:
+    """
+    Cancel a run.
+
+    Use this to stop a run that is in progress.
+
+    Args:
+        thread_id: (REQUIRED) The ID of the thread the run belongs to
+        run_id: (REQUIRED) The ID of the run to cancel
+    """
+    return cast(Dict[str, Any], tools_cancel_run(thread_id=thread_id, run_id=run_id))
 
 
 # Run Step Tools

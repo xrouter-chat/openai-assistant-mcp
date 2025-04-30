@@ -5,7 +5,6 @@ from .models import (
     BaseAssistant,
     CreateAssistantRequest,
     ModifyAssistantRequest,
-    ResponseFormat,
 )
 from .tools import (
     create_assistant,
@@ -27,5 +26,4 @@ __all__ = [
     "BaseAssistant",
     "CreateAssistantRequest",
     "ModifyAssistantRequest",
-    "ResponseFormat",
 ]

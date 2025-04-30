@@ -132,4 +132,61 @@ class FunctionTool(BaseModel):
     function: FunctionParameters = Field(description="The function definition.")
 
 
+# Response format models
+class TextResponseFormat(BaseModel):
+    """Text response format for outputs."""
+
+    type: Literal["text"] = Field(
+        description="The type of response format being defined. Always text."
+    )
+
+
+class JsonObjectResponseFormat(BaseModel):
+    """JSON object response format for outputs."""
+
+    type: Literal["json_object"] = Field(
+        description="The type of response format being defined. Always json_object."
+    )
+
+
+class JsonSchemaConfig(BaseModel):
+    """Configuration for JSON schema response format."""
+
+    name: str = Field(
+        pattern=r"^[a-zA-Z0-9_-]+$",
+        max_length=64,
+        description="The name of the response format. Must be a-z, A-Z, 0-9, "
+        "or contain underscores and dashes.",
+    )
+    description: Optional[str] = Field(
+        default=None, description="A description of what the response format is for."
+    )
+    schema: dict = Field(
+        description="The schema for the response format, "
+        "described as a JSON Schema object."
+    )
+    strict: Optional[bool] = Field(
+        default=None, description="Whether to enable strict schema adherence."
+    )
+
+
+class JsonSchemaResponseFormat(BaseModel):
+    """JSON schema response format for structured outputs."""
+
+    type: Literal["json_schema"] = Field(
+        description="The type of response format being defined. Always json_schema."
+    )
+    json_schema: JsonSchemaConfig = Field(
+        description="Structured Outputs configuration options."
+    )
+
+
+ResponseFormat = Union[
+    Literal["auto"],
+    TextResponseFormat,
+    JsonObjectResponseFormat,
+    JsonSchemaResponseFormat,
+]
+
+
 Tool = Union[CodeInterpreterTool, AssistantFileSearchTool, FunctionTool]

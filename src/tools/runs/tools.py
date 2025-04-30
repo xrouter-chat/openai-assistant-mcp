@@ -6,14 +6,8 @@ from openai import OpenAI
 
 from src.config.settings import Settings
 
-from ..models import CodeInterpreterTool, FileSearchTool, FunctionTool
-from .models import (
-    ResponseFormat,
-    RunListResponse,
-    RunObject,
-    ToolChoice,
-    TruncationStrategy,
-)
+from ..models import CodeInterpreterTool, FileSearchTool, FunctionTool, ResponseFormat
+from .models import RunListResponse, RunObject, ToolChoice, TruncationStrategy
 
 logger = logging.getLogger("openai-assistant-mcp")
 settings = Settings()

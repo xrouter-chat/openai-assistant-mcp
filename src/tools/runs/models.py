@@ -8,7 +8,13 @@ from typing import List, Literal, Optional, Union
 
 from pydantic import BaseModel, Field
 
-from ..models import CodeInterpreterTool, FileSearchTool, FunctionTool, Metadata
+from ..models import (
+    CodeInterpreterTool,
+    FileSearchTool,
+    FunctionTool,
+    Metadata,
+    ResponseFormat,
+)
 
 
 class RunIncompleteDetails(BaseModel):
@@ -65,43 +71,6 @@ class RequiredAction(BaseModel):
     )
     submit_tool_outputs: SubmitToolOutputs = Field(
         description="Details on the tool outputs needed for this run to continue"
-    )
-
-
-class ResponseFormatJsonSchema(BaseModel):
-    """Model for JSON schema response format."""
-
-    name: Optional[str] = Field(
-        default=None,
-        description="The name of the response format. "
-        "Must be a-z, A-Z, 0-9, or contain "
-        "underscores and dashes, with a maximum length of 64",
-    )
-    description: Optional[str] = Field(
-        default=None,
-        description="A description of what the response format is for, "
-        "used by the model "
-        "to determine how to respond in the format",
-    )
-    schema: dict = Field(
-        description="The schema for the response format, described as "
-        "a JSON Schema object"
-    )
-    strict: Optional[bool] = Field(
-        default=None,
-        description="Whether to enable strict schema adherence "
-        "when generating the output",
-    )
-
-
-class ResponseFormat(BaseModel):
-    """Model for response format configuration."""
-
-    type: Literal["text", "json_object", "json_schema"] = Field(
-        description="The type of response format being defined"
-    )
-    json_schema: Optional[ResponseFormatJsonSchema] = Field(
-        default=None, description="Structured Outputs configuration options"
     )
 
 

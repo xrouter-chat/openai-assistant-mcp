@@ -5,8 +5,6 @@ This module provides models and utilities for interacting with the OpenAI Run AP
 
 from .models import (
     RequiredAction,
-    ResponseFormat,
-    ResponseFormatJsonSchema,
     RunIncompleteDetails,
     RunLastError,
     RunObject,
@@ -43,8 +41,6 @@ __all__ = [
     "ToolCall",
     "SubmitToolOutputs",
     "RequiredAction",
-    "ResponseFormatJsonSchema",
-    "ResponseFormat",
     "ToolChoice",
     "TruncationStrategy",
     "RunUsage",
