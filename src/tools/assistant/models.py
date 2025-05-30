@@ -96,3 +96,32 @@ class ModifyAssistantRequest(BaseAssistant):
         default=None,
         description="Constrains effort on reasoning for reasoning models.",
     )
+
+
+# Response models
+class AssistantListResponse(BaseModel):
+    """Model for list assistants response."""
+
+    object: Literal["list"] = Field(
+        default="list", description="The object type, which is always list."
+    )
+    data: List[AssistantObject] = Field(description="List of assistant objects.")
+    first_id: Optional[str] = Field(
+        default=None, description="The first assistant ID in the list."
+    )
+    last_id: Optional[str] = Field(
+        default=None, description="The last assistant ID in the list."
+    )
+    has_more: bool = Field(
+        default=False, description="Whether there are more assistants available."
+    )
+
+
+class DeleteAssistantResponse(BaseModel):
+    """Model for assistant deletion response."""
+
+    id: str = Field(description="The ID of the deleted assistant.")
+    object: Literal["assistant.deleted"] = Field(
+        default="assistant.deleted", description="The object type for deletion."
+    )
+    deleted: bool = Field(description="Whether the assistant was successfully deleted.")

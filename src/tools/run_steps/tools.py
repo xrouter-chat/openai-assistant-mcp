@@ -1,16 +1,13 @@
 """OpenAI Run Steps API tools implementation."""
 import logging
-from typing import Any, Dict, List, Literal, Optional, cast
+from typing import List, Literal, Optional, cast
 
 from openai import NOT_GIVEN, OpenAI
 from openai.types.beta.threads.runs import RunStepInclude
 
-from src.config.settings import Settings
-
 from .models import RunStepListResponse, RunStepObject
 
 logger = logging.getLogger(__name__)
-settings = Settings()
 client = OpenAI()
 
 
@@ -22,7 +19,7 @@ def list_run_steps(
     after: Optional[str] = None,
     before: Optional[str] = None,
     include: Optional[List[RunStepInclude]] = None,
-) -> Dict[str, Any]:
+) -> RunStepListResponse:
     """
     List run steps for a run.
 
@@ -38,7 +35,7 @@ def list_run_steps(
                 'step_details.tool_calls[*].file_search.results[*].content'
 
     Returns:
-        Dict containing list of run steps
+        RunStepListResponse: The list of run steps
     """
     logger.info(f"Listing run steps for run {run_id} in thread {thread_id}")
 
@@ -53,13 +50,7 @@ def list_run_steps(
     )
     logger.info(f"Got response from OpenAI: {response}")
 
-    validated = RunStepListResponse.model_validate(response)
-    logger.info(f"Validated response: {validated}")
-
-    result = validated.model_dump(exclude_none=True)
-    logger.info(f"Final result: {result}")
-
-    return cast(Dict[str, Any], result)
+    return cast(RunStepListResponse, RunStepListResponse.model_validate(response))
 
 
 def get_run_step(
@@ -67,7 +58,7 @@ def get_run_step(
     run_id: str,
     step_id: str,
     include: Optional[List[RunStepInclude]] = None,
-) -> Dict[str, Any]:
+) -> RunStepObject:
     """
     Get run step by ID.
 
@@ -80,7 +71,7 @@ def get_run_step(
                 'step_details.tool_calls[*].file_search.results[*].content'
 
     Returns:
-        Dict containing run step data
+        RunStepObject: The retrieved run step
     """
     logger.info(f"Getting run step {step_id} from run {run_id} in thread {thread_id}")
 
@@ -92,10 +83,4 @@ def get_run_step(
     )
     logger.info(f"Got response from OpenAI: {response}")
 
-    validated = RunStepObject.model_validate(response)
-    logger.info(f"Validated response: {validated}")
-
-    result = validated.model_dump(exclude_none=True)
-    logger.info(f"Final result: {result}")
-
-    return cast(Dict[str, Any], result)
+    return cast(RunStepObject, RunStepObject.model_validate(response))

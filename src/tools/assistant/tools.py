@@ -1,22 +1,19 @@
 """OpenAI Assistant API tools implementation."""
 import logging
-from typing import Any, Dict, List, Literal, Optional, cast
+from typing import Dict, List, Literal, Optional, cast
 
 from openai import OpenAI
 
-from src.config.settings import Settings
-
+from ..models import ResponseFormat, Tool, ToolResources
 from .models import (
+    AssistantListResponse,
     AssistantObject,
     CreateAssistantRequest,
+    DeleteAssistantResponse,
     ModifyAssistantRequest,
-    ResponseFormat,
-    Tool,
-    ToolResources,
 )
 
 logger = logging.getLogger(__name__)
-settings = Settings()
 client = OpenAI()
 
 
@@ -32,7 +29,7 @@ def create_assistant(
     top_p: Optional[float] = None,
     response_format: Optional[ResponseFormat] = None,
     reasoning_effort: Optional[Literal["low", "medium", "high"]] = None,
-) -> Dict[str, Any]:
+) -> AssistantObject:
     """
     Create an assistant.
 
@@ -50,7 +47,7 @@ def create_assistant(
         reasoning_effort: Reasoning effort level (low/medium/high)
 
     Returns:
-        Dict containing created assistant data
+        AssistantObject containing created assistant data
     """
     logger.info("Creating assistant")
 
@@ -75,16 +72,10 @@ def create_assistant(
     logger.info(f"Got response from OpenAI: {response}")
     logger.info(f"Response type: {type(response)}")
 
-    validated = AssistantObject.model_validate(response)
-    logger.info(f"Validated response: {validated}")
-
-    result = validated.model_dump()
-    logger.info(f"Final result: {result}")
-
-    return cast(Dict[str, Any], result)
+    return cast(AssistantObject, AssistantObject.model_validate(response))
 
 
-def get_assistant(assistant_id: str) -> Dict[str, Any]:
+def get_assistant(assistant_id: str) -> AssistantObject:
     """
     Get assistant by ID.
 
@@ -92,33 +83,32 @@ def get_assistant(assistant_id: str) -> Dict[str, Any]:
         assistant_id: (REQUIRED) The ID of the assistant to retrieve
 
     Returns:
-        Dict containing assistant data
+        AssistantObject containing assistant data
     """
     logger.info(f"Getting assistant {assistant_id}")
 
     response = client.beta.assistants.retrieve(assistant_id)
-    return cast(Dict[str, Any], AssistantObject.model_validate(response).model_dump())
+    return cast(AssistantObject, AssistantObject.model_validate(response))
 
 
-def list_assistants() -> Dict[str, Any]:
+def list_assistants() -> AssistantListResponse:
     """
     List assistants.
 
     This is an MCP resource since it takes no arguments.
 
     Returns:
-        Dict containing list of assistants
+        AssistantListResponse containing list of assistants
     """
     logger.info("Listing assistants")
 
     response = client.beta.assistants.list()
-    return cast(
-        Dict[str, Any],
-        {
-            "data": [
-                AssistantObject.model_validate(a).model_dump() for a in response.data
-            ]
-        },
+    return AssistantListResponse(
+        object="list",
+        data=[AssistantObject.model_validate(a) for a in response.data],
+        first_id=response.first_id,
+        last_id=response.last_id,
+        has_more=response.has_more,
     )
 
 
@@ -135,7 +125,7 @@ def modify_assistant(
     top_p: Optional[float] = None,
     response_format: Optional[ResponseFormat] = None,
     reasoning_effort: Optional[Literal["low", "medium", "high"]] = None,
-) -> Dict[str, Any]:
+) -> AssistantObject:
     """
     Modify an assistant.
 
@@ -154,7 +144,7 @@ def modify_assistant(
         reasoning_effort: Reasoning effort level (low/medium/high)
 
     Returns:
-        Dict containing modified assistant data
+        AssistantObject containing modified assistant data
     """
     logger.info(f"Modifying assistant {assistant_id}")
 
@@ -173,10 +163,10 @@ def modify_assistant(
     ).model_dump(exclude_none=True)
 
     response = client.beta.assistants.update(assistant_id, **request)
-    return cast(Dict[str, Any], AssistantObject.model_validate(response).model_dump())
+    return cast(AssistantObject, AssistantObject.model_validate(response))
 
 
-def delete_assistant(assistant_id: str) -> Dict[str, Any]:
+def delete_assistant(assistant_id: str) -> DeleteAssistantResponse:
     """
     Delete an assistant.
 
@@ -184,9 +174,13 @@ def delete_assistant(assistant_id: str) -> Dict[str, Any]:
         assistant_id: (REQUIRED) The ID of the assistant to delete
 
     Returns:
-        Dict containing deletion status
+        DeleteAssistantResponse containing deletion status
     """
     logger.info(f"Deleting assistant {assistant_id}")
 
     response = client.beta.assistants.delete(assistant_id)
-    return cast(Dict[str, Any], {"id": response.id, "deleted": response.deleted})
+    return DeleteAssistantResponse(
+        id=response.id,
+        object="assistant.deleted",
+        deleted=response.deleted,
+    )

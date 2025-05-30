@@ -4,8 +4,6 @@ from typing import Any, Dict, List, Literal, Optional, Union, cast
 
 from openai import OpenAI
 
-from src.config.settings import Settings
-
 from .models import (
     CreateMessageRequest,
     DeleteMessageResponse,
@@ -17,7 +15,6 @@ from .models import (
 )
 
 logger = logging.getLogger(__name__)
-settings = Settings()
 client = OpenAI()
 
 
@@ -27,7 +24,7 @@ def create_message(
     content: Union[str, List[MessageContent]],
     attachments: Optional[List[Dict[str, Any]]] = None,
     metadata: Optional[Dict[str, str]] = None,
-) -> Dict[str, Any]:
+) -> MessageObject:
     """
     Create a message.
 
@@ -40,7 +37,7 @@ def create_message(
         metadata: Key-value pairs (max 16 pairs)
 
     Returns:
-        Dict containing created message data
+        MessageObject: The created message
     """
     logger.info(f"Creating message in thread {thread_id}")
 
@@ -70,13 +67,7 @@ def create_message(
     response = client.beta.threads.messages.create(thread_id=thread_id, **request_data)
     logger.info(f"Got response from OpenAI: {response}")
 
-    validated = MessageObject.model_validate(response)
-    logger.info(f"Validated response: {validated}")
-
-    result = validated.model_dump(exclude_none=True)
-    logger.info(f"Final result: {result}")
-
-    return cast(Dict[str, Any], result)
+    return cast(MessageObject, MessageObject.model_validate(response))
 
 
 def list_messages(
@@ -86,7 +77,7 @@ def list_messages(
     after: Optional[str] = None,
     before: Optional[str] = None,
     run_id: Optional[str] = None,
-) -> Dict[str, Any]:
+) -> MessageListResponse:
     """
     List messages for a thread.
 
@@ -99,7 +90,7 @@ def list_messages(
         run_id: Filter for messages from a specific run
 
     Returns:
-        Dict containing list of messages
+        MessageListResponse: The list of messages
     """
     logger.info(f"Listing messages for thread {thread_id}")
 
@@ -114,12 +105,10 @@ def list_messages(
     params = {k: v for k, v in params.items() if v is not None}
 
     response = client.beta.threads.messages.list(thread_id=thread_id, **params)
-    return cast(
-        Dict[str, Any], MessageListResponse.model_validate(response).model_dump()
-    )
+    return cast(MessageListResponse, MessageListResponse.model_validate(response))
 
 
-def get_message(thread_id: str, message_id: str) -> Dict[str, Any]:
+def get_message(thread_id: str, message_id: str) -> MessageObject:
     """
     Get message by ID.
 
@@ -128,21 +117,21 @@ def get_message(thread_id: str, message_id: str) -> Dict[str, Any]:
         message_id: (REQUIRED) The ID of the message to retrieve
 
     Returns:
-        Dict containing message data
+        MessageObject: The retrieved message
     """
     logger.info(f"Getting message {message_id} from thread {thread_id}")
 
     response = client.beta.threads.messages.retrieve(
         thread_id=thread_id, message_id=message_id
     )
-    return cast(Dict[str, Any], MessageObject.model_validate(response).model_dump())
+    return cast(MessageObject, MessageObject.model_validate(response))
 
 
 def modify_message(
     thread_id: str,
     message_id: str,
     metadata: Optional[Dict[str, str]] = None,
-) -> Dict[str, Any]:
+) -> MessageObject:
     """
     Modify a message.
 
@@ -152,7 +141,7 @@ def modify_message(
         metadata: Key-value pairs (max 16 pairs)
 
     Returns:
-        Dict containing modified message data
+        MessageObject: The modified message
     """
     logger.info(f"Modifying message {message_id} in thread {thread_id}")
 
@@ -161,10 +150,10 @@ def modify_message(
     response = client.beta.threads.messages.update(
         thread_id=thread_id, message_id=message_id, **request
     )
-    return cast(Dict[str, Any], MessageObject.model_validate(response).model_dump())
+    return cast(MessageObject, MessageObject.model_validate(response))
 
 
-def delete_message(thread_id: str, message_id: str) -> Dict[str, Any]:
+def delete_message(thread_id: str, message_id: str) -> DeleteMessageResponse:
     """
     Delete a message.
 
@@ -173,13 +162,11 @@ def delete_message(thread_id: str, message_id: str) -> Dict[str, Any]:
         message_id: (REQUIRED) The ID of the message to delete
 
     Returns:
-        Dict containing deletion status
+        DeleteMessageResponse: The deletion status
     """
     logger.info(f"Deleting message {message_id} from thread {thread_id}")
 
     response = client.beta.threads.messages.delete(
         thread_id=thread_id, message_id=message_id
     )
-    return cast(
-        Dict[str, Any], DeleteMessageResponse.model_validate(response).model_dump()
-    )
+    return cast(DeleteMessageResponse, DeleteMessageResponse.model_validate(response))

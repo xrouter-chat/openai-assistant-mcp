@@ -4,13 +4,10 @@ from typing import Any, Dict, List, Literal, Optional, Union, cast
 
 from openai import OpenAI
 
-from src.config.settings import Settings
-
 from ..models import CodeInterpreterTool, FileSearchTool, FunctionTool, ResponseFormat
 from .models import RunListResponse, RunObject, ToolChoice, TruncationStrategy
 
 logger = logging.getLogger(__name__)
-settings = Settings()
 client = OpenAI()
 
 
@@ -35,7 +32,7 @@ def create_run(
     ] = None,
     truncation_strategy: Optional[TruncationStrategy] = None,
     parallel_tool_calls: Optional[bool] = None,
-) -> Dict[str, Any]:
+) -> RunObject:
     """
     Create a run.
 
@@ -58,7 +55,7 @@ def create_run(
         parallel_tool_calls: Boolean for parallel tool calls
 
     Returns:
-        Dict containing created run data
+        RunObject: The created run
     """
     logger.info(f"Creating run for thread {thread_id} with assistant {assistant_id}")
 
@@ -92,13 +89,7 @@ def create_run(
     response = client.beta.threads.runs.create(thread_id=thread_id, **request_data)
     logger.info(f"Got response from OpenAI: {response}")
 
-    validated = RunObject.model_validate(response)
-    logger.info(f"Validated response: {validated}")
-
-    result = validated.model_dump(exclude_none=True)
-    logger.info(f"Final result: {result}")
-
-    return cast(Dict[str, Any], result)
+    return cast(RunObject, RunObject.model_validate(response))
 
 
 def create_thread_and_run(
@@ -121,7 +112,7 @@ def create_thread_and_run(
     ] = None,
     truncation_strategy: Optional[TruncationStrategy] = None,
     parallel_tool_calls: Optional[bool] = None,
-) -> Dict[str, Any]:
+) -> RunObject:
     """
     Create a thread and run it in one request.
 
@@ -143,7 +134,7 @@ def create_thread_and_run(
         parallel_tool_calls: Boolean for parallel tool calls
 
     Returns:
-        Dict containing created run data
+        RunObject: The created run
     """
     logger.info(f"Creating thread and run with assistant {assistant_id}")
 
@@ -177,13 +168,7 @@ def create_thread_and_run(
     response = client.beta.threads.create_and_run(**request_data)
     logger.info(f"Got response from OpenAI: {response}")
 
-    validated = RunObject.model_validate(response)
-    logger.info(f"Validated response: {validated}")
-
-    result = validated.model_dump(exclude_none=True)
-    logger.info(f"Final result: {result}")
-
-    return cast(Dict[str, Any], result)
+    return cast(RunObject, RunObject.model_validate(response))
 
 
 def list_runs(
@@ -192,7 +177,7 @@ def list_runs(
     order: Optional[Literal["asc", "desc"]] = None,
     after: Optional[str] = None,
     before: Optional[str] = None,
-) -> Dict[str, Any]:
+) -> RunListResponse:
     """
     List runs for a thread.
 
@@ -204,7 +189,7 @@ def list_runs(
         before: Cursor for pagination (get runs before this ID)
 
     Returns:
-        Dict containing list of runs
+        RunListResponse: The list of runs
     """
     logger.info(f"Listing runs for thread {thread_id}")
 
@@ -220,16 +205,10 @@ def list_runs(
     response = client.beta.threads.runs.list(thread_id=thread_id, **params)
     logger.info(f"Got response from OpenAI: {response}")
 
-    validated = RunListResponse.model_validate(response)
-    logger.info(f"Validated response: {validated}")
-
-    result = validated.model_dump(exclude_none=True)
-    logger.info(f"Final result: {result}")
-
-    return cast(Dict[str, Any], result)
+    return cast(RunListResponse, RunListResponse.model_validate(response))
 
 
-def get_run(thread_id: str, run_id: str) -> Dict[str, Any]:
+def get_run(thread_id: str, run_id: str) -> RunObject:
     """
     Get run by ID.
 
@@ -238,19 +217,19 @@ def get_run(thread_id: str, run_id: str) -> Dict[str, Any]:
         run_id: (REQUIRED) The ID of the run to retrieve
 
     Returns:
-        Dict containing run data
+        RunObject: The retrieved run
     """
     logger.info(f"Getting run {run_id} from thread {thread_id}")
 
     response = client.beta.threads.runs.retrieve(thread_id=thread_id, run_id=run_id)
-    return cast(Dict[str, Any], RunObject.model_validate(response).model_dump())
+    return cast(RunObject, RunObject.model_validate(response))
 
 
 def modify_run(
     thread_id: str,
     run_id: str,
     metadata: Optional[Dict[str, str]] = None,
-) -> Dict[str, Any]:
+) -> RunObject:
     """
     Modify a run.
 
@@ -260,14 +239,14 @@ def modify_run(
         metadata: Key-value pairs (max 16 pairs)
 
     Returns:
-        Dict containing modified run data
+        RunObject: The modified run
     """
     logger.info(f"Modifying run {run_id} in thread {thread_id}")
 
     response = client.beta.threads.runs.update(
         thread_id=thread_id, run_id=run_id, metadata=metadata
     )
-    return cast(Dict[str, Any], RunObject.model_validate(response).model_dump())
+    return cast(RunObject, RunObject.model_validate(response))
 
 
 def submit_tool_outputs(
@@ -275,7 +254,7 @@ def submit_tool_outputs(
     run_id: str,
     tool_outputs: List[Dict[str, str]],
     stream: Optional[bool] = None,
-) -> Dict[str, Any]:
+) -> RunObject:
     """
     Submit outputs for tool calls.
 
@@ -286,7 +265,7 @@ def submit_tool_outputs(
         stream: Boolean for streaming mode
 
     Returns:
-        Dict containing updated run data
+        RunObject: The updated run
     """
     logger.info(f"Submitting tool outputs for run {run_id} in thread {thread_id}")
 
@@ -300,10 +279,10 @@ def submit_tool_outputs(
     response = client.beta.threads.runs.submit_tool_outputs(
         thread_id=thread_id, run_id=run_id, **request_data
     )
-    return cast(Dict[str, Any], RunObject.model_validate(response).model_dump())
+    return cast(RunObject, RunObject.model_validate(response))
 
 
-def cancel_run(thread_id: str, run_id: str) -> Dict[str, Any]:
+def cancel_run(thread_id: str, run_id: str) -> RunObject:
     """
     Cancel a run.
 
@@ -312,9 +291,9 @@ def cancel_run(thread_id: str, run_id: str) -> Dict[str, Any]:
         run_id: (REQUIRED) The ID of the run to cancel
 
     Returns:
-        Dict containing cancelled run data
+        RunObject: The cancelled run
     """
     logger.info(f"Cancelling run {run_id} in thread {thread_id}")
 
     response = client.beta.threads.runs.cancel(thread_id=thread_id, run_id=run_id)
-    return cast(Dict[str, Any], RunObject.model_validate(response).model_dump())
+    return cast(RunObject, RunObject.model_validate(response))

@@ -6,7 +6,6 @@ import pytest
 # Mock OpenAI before importing any modules that use it
 mock_openai = Mock()
 with patch("openai.OpenAI", return_value=mock_openai):
-    from src.tools.assistant.models import CodeInterpreterTool
     from src.tools.assistant.tools import (
         create_assistant,
         delete_assistant,
@@ -14,6 +13,7 @@ with patch("openai.OpenAI", return_value=mock_openai):
         list_assistants,
         modify_assistant,
     )
+    from src.tools.models import CodeInterpreterTool
 
 # Example responses from OpenAI API
 EXAMPLE_ASSISTANT = {

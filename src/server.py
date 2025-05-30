@@ -4,43 +4,74 @@ This module implements an MCP server for interacting with OpenAI Assistant API.
 """
 
 import logging
-from typing import Any, Dict, List, Literal, Optional, Union, cast
+from typing import Any, Dict, List, Literal, Optional, Union
 
 from mcp.server.fastmcp import FastMCP
 from openai.types.beta.threads.runs import RunStepInclude
 
-from tools import Metadata, ResponseFormat, Tool, ToolResources
-from tools import create_assistant as tools_create_assistant  # Tools; Models
-from tools import delete_assistant as tools_delete_assistant
-from tools import get_assistant as tools_get_assistant
-from tools import list_assistants as tools_list_assistants
-from tools import modify_assistant as tools_modify_assistant
-from tools.messages import create_message as tools_create_message
-from tools.messages import delete_message as tools_delete_message
-from tools.messages import get_message as tools_get_message
-from tools.messages import list_messages as tools_list_messages
-from tools.messages import modify_message as tools_modify_message
-from tools.messages.models import MessageContent
-from tools.run_steps import get_run_step as tools_get_run_step
-from tools.run_steps import list_run_steps as tools_list_run_steps
-from tools.runs import cancel_run as tools_cancel_run
-from tools.runs import create_run as tools_create_run
-from tools.runs import create_thread_and_run as tools_create_thread_and_run
-from tools.runs import get_run as tools_get_run
-from tools.runs import list_runs as tools_list_runs
-from tools.runs import modify_run as tools_modify_run
-from tools.runs import submit_tool_outputs as tools_submit_tool_outputs
-from tools.runs.models import (
+# Tool models from common
+# Common models
+from .tools import (
     CodeInterpreterTool,
     FileSearchTool,
     FunctionTool,
-    ToolChoice,
-    TruncationStrategy,
+    Metadata,
+    ResponseFormat,
+    Tool,
+    ToolResources,
 )
-from tools.threads import create_thread as tools_create_thread
-from tools.threads import delete_thread as tools_delete_thread
-from tools.threads import get_thread as tools_get_thread
-from tools.threads import modify_thread as tools_modify_thread
+
+# Assistant tools
+# Assistant models
+from .tools.assistant import (
+    AssistantListResponse,
+    AssistantObject,
+    DeleteAssistantResponse,
+)
+from .tools.assistant import create_assistant as tools_create_assistant
+from .tools.assistant import delete_assistant as tools_delete_assistant
+from .tools.assistant import get_assistant as tools_get_assistant
+from .tools.assistant import list_assistants as tools_list_assistants
+from .tools.assistant import modify_assistant as tools_modify_assistant
+
+# Message tools
+# Message models
+from .tools.messages import (
+    DeleteMessageResponse,
+    MessageContent,
+    MessageListResponse,
+    MessageObject,
+)
+from .tools.messages import create_message as tools_create_message
+from .tools.messages import delete_message as tools_delete_message
+from .tools.messages import get_message as tools_get_message
+from .tools.messages import list_messages as tools_list_messages
+from .tools.messages import modify_message as tools_modify_message
+
+# Run step tools
+# Run step models
+from .tools.run_steps import RunStepListResponse, RunStepObject
+from .tools.run_steps import get_run_step as tools_get_run_step
+from .tools.run_steps import list_run_steps as tools_list_run_steps
+
+# Run tools
+# Run models
+from .tools.runs import RunListResponse, RunObject, ToolChoice, TruncationStrategy
+from .tools.runs import cancel_run as tools_cancel_run
+from .tools.runs import create_run as tools_create_run
+from .tools.runs import create_thread_and_run as tools_create_thread_and_run
+from .tools.runs import get_run as tools_get_run
+from .tools.runs import list_runs as tools_list_runs
+from .tools.runs import modify_run as tools_modify_run
+from .tools.runs import submit_tool_outputs as tools_submit_tool_outputs
+
+# Thread tools
+# Thread models
+from .tools.threads import DeleteThreadResponse, ThreadObject
+from .tools.threads import create_thread as tools_create_thread
+from .tools.threads import delete_thread as tools_delete_thread
+from .tools.threads import get_thread as tools_get_thread
+from .tools.threads import modify_thread as tools_modify_thread
 
 # Get logger
 logger = logging.getLogger(__name__)
@@ -65,7 +96,7 @@ def create_assistant(
     top_p: Optional[float] = None,
     response_format: Optional[ResponseFormat] = None,
     reasoning_effort: Optional[Literal["low", "medium", "high"]] = None,
-) -> Dict[str, Any]:
+) -> AssistantObject:
     """
     Create an assistant.
 
@@ -84,27 +115,40 @@ def create_assistant(
         top_p: Nucleus sampling parameter (0-1)
         response_format: Output format specification
         reasoning_effort: Reasoning effort level (low/medium/high)
+
+    Returns:
+        AssistantObject: The created assistant containing:
+        - id: The unique identifier for the assistant
+        - object: Always "assistant"
+        - created_at: Unix timestamp when the assistant was created
+        - model: ID of the model being used
+        - name: The assistant's name (max 256 chars)
+        - description: The assistant's description (max 512 chars)
+        - instructions: System instructions for the assistant (max 256k chars)
+        - tools: List of enabled tools (max 128 tools)
+        - tool_resources: Resources used by the assistant's tools
+        - metadata: Key-value pairs attached to the object
+        - temperature: Sampling temperature (0-2)
+        - top_p: Nucleus sampling parameter (0-1)
+        - response_format: Output format specification
     """
-    return cast(
-        Dict[str, Any],
-        tools_create_assistant(
-            model=model,
-            name=name,
-            description=description,
-            instructions=instructions,
-            tools=tools,
-            tool_resources=tool_resources,
-            metadata=metadata,
-            temperature=temperature,
-            top_p=top_p,
-            response_format=response_format,
-            reasoning_effort=reasoning_effort,
-        ),
+    return tools_create_assistant(
+        model=model,
+        name=name,
+        description=description,
+        instructions=instructions,
+        tools=tools,
+        tool_resources=tool_resources,
+        metadata=metadata,
+        temperature=temperature,
+        top_p=top_p,
+        response_format=response_format,
+        reasoning_effort=reasoning_effort,
     )
 
 
 @mcp.tool()
-def get_assistant(assistant_id: str) -> Dict[str, Any]:
+def get_assistant(assistant_id: str) -> AssistantObject:
     """
     Get assistant by ID.
 
@@ -112,14 +156,30 @@ def get_assistant(assistant_id: str) -> Dict[str, Any]:
 
     Args:
         assistant_id: (REQUIRED) The ID of the assistant to retrieve
+
+    Returns:
+        AssistantObject: The assistant containing:
+        - id: The unique identifier for the assistant
+        - object: Always "assistant"
+        - created_at: Unix timestamp when the assistant was created
+        - model: ID of the model being used
+        - name: The assistant's name (max 256 chars)
+        - description: The assistant's description (max 512 chars)
+        - instructions: System instructions for the assistant (max 256k chars)
+        - tools: List of enabled tools (max 128 tools)
+        - tool_resources: Resources used by the assistant's tools
+        - metadata: Key-value pairs attached to the object
+        - temperature: Sampling temperature (0-2)
+        - top_p: Nucleus sampling parameter (0-1)
+        - response_format: Output format specification
     """
-    return cast(Dict[str, Any], tools_get_assistant(assistant_id))
+    return tools_get_assistant(assistant_id)
 
 
 @mcp.tool()
-def list_assistants() -> Dict[str, Any]:
+def list_assistants() -> AssistantListResponse:
     """List assistants. Use this to view all available assistants."""
-    return cast(Dict[str, Any], tools_list_assistants())
+    return tools_list_assistants()
 
 
 @mcp.tool()
@@ -136,7 +196,7 @@ def modify_assistant(
     top_p: Optional[float] = None,
     response_format: Optional[ResponseFormat] = None,
     reasoning_effort: Optional[Literal["low", "medium", "high"]] = None,
-) -> Dict[str, Any]:
+) -> AssistantObject:
     """
     Modify an assistant.
 
@@ -155,28 +215,41 @@ def modify_assistant(
         top_p: Nucleus sampling parameter (0-1)
         response_format: Output format specification
         reasoning_effort: Reasoning effort level (low/medium/high)
+
+    Returns:
+        AssistantObject: The assistant containing:
+        - id: The unique identifier for the assistant
+        - object: Always "assistant"
+        - created_at: Unix timestamp when the assistant was created
+        - model: ID of the model being used
+        - name: The assistant's name (max 256 chars)
+        - description: The assistant's description (max 512 chars)
+        - instructions: System instructions for the assistant (max 256k chars)
+        - tools: List of enabled tools (max 128 tools)
+        - tool_resources: Resources used by the assistant's tools
+        - metadata: Key-value pairs attached to the object
+        - temperature: Sampling temperature (0-2)
+        - top_p: Nucleus sampling parameter (0-1)
+        - response_format: Output format specification
     """
-    return cast(
-        Dict[str, Any],
-        tools_modify_assistant(
-            assistant_id=assistant_id,
-            model=model,
-            name=name,
-            description=description,
-            instructions=instructions,
-            tools=tools,
-            tool_resources=tool_resources,
-            metadata=metadata,
-            temperature=temperature,
-            top_p=top_p,
-            response_format=response_format,
-            reasoning_effort=reasoning_effort,
-        ),
+    return tools_modify_assistant(
+        assistant_id=assistant_id,
+        model=model,
+        name=name,
+        description=description,
+        instructions=instructions,
+        tools=tools,
+        tool_resources=tool_resources,
+        metadata=metadata,
+        temperature=temperature,
+        top_p=top_p,
+        response_format=response_format,
+        reasoning_effort=reasoning_effort,
     )
 
 
 @mcp.tool()
-def delete_assistant(assistant_id: str) -> Dict[str, Any]:
+def delete_assistant(assistant_id: str) -> DeleteAssistantResponse:
     """
     Delete an assistant.
 
@@ -184,8 +257,14 @@ def delete_assistant(assistant_id: str) -> Dict[str, Any]:
 
     Args:
         assistant_id: (REQUIRED) The ID of the assistant to delete
+
+    Returns:
+        DeleteAssistantResponse: The deletion confirmation containing:
+        - id: The ID of the deleted assistant
+        - object: Always "assistant.deleted"
+        - deleted: Boolean indicating whether the assistant was successfully deleted
     """
-    return cast(Dict[str, Any], tools_delete_assistant(assistant_id))
+    return tools_delete_assistant(assistant_id)
 
 
 # Thread Tools
@@ -194,7 +273,7 @@ def create_thread(
     messages: Optional[List[Dict[str, Any]]] = None,
     metadata: Optional[Dict[str, str]] = None,
     tool_resources: Optional[Union[Dict[str, Any], ToolResources]] = None,
-) -> Dict[str, Any]:
+) -> ThreadObject:
     """
     Create a thread.
 
@@ -205,12 +284,20 @@ def create_thread(
         messages: List of messages to start the thread with
         metadata: Key-value pairs (max 16 pairs)
         tool_resources: Resources for tools
+
+    Returns:
+        ThreadObject: The created thread containing:
+        - id: The unique identifier for the thread
+        - object: Always "thread"
+        - created_at: Unix timestamp when the thread was created
+        - metadata: Key-value pairs attached to the thread
+        - tool_resources: Resources made available to assistant's tools in this thread
     """
-    return cast(Dict[str, Any], tools_create_thread(messages, metadata, tool_resources))
+    return tools_create_thread(messages, metadata, tool_resources)
 
 
 @mcp.tool()
-def get_thread(thread_id: str) -> Dict[str, Any]:
+def get_thread(thread_id: str) -> ThreadObject:
     """
     Get thread by ID.
 
@@ -218,8 +305,16 @@ def get_thread(thread_id: str) -> Dict[str, Any]:
 
     Args:
         thread_id: (REQUIRED) The ID of the thread to retrieve
+
+    Returns:
+        ThreadObject: The thread containing:
+        - id: The unique identifier for the thread
+        - object: Always "thread"
+        - created_at: Unix timestamp when the thread was created
+        - metadata: Key-value pairs attached to the thread
+        - tool_resources: Resources made available to assistant's tools in this thread
     """
-    return cast(Dict[str, Any], tools_get_thread(thread_id))
+    return tools_get_thread(thread_id)
 
 
 @mcp.tool()
@@ -227,7 +322,7 @@ def modify_thread(
     thread_id: str,
     metadata: Optional[Dict[str, str]] = None,
     tool_resources: Optional[Union[Dict[str, Any], ToolResources]] = None,
-) -> Dict[str, Any]:
+) -> ThreadObject:
     """
     Modify a thread.
 
@@ -237,14 +332,20 @@ def modify_thread(
         thread_id: (REQUIRED) The ID of the thread to modify
         metadata: Key-value pairs (max 16 pairs)
         tool_resources: Resources for tools
+
+    Returns:
+        ThreadObject: The modified thread containing:
+        - id: The unique identifier for the thread
+        - object: Always "thread"
+        - created_at: Unix timestamp when the thread was created
+        - metadata: Key-value pairs attached to the thread
+        - tool_resources: Resources made available to assistant's tools in this thread
     """
-    return cast(
-        Dict[str, Any], tools_modify_thread(thread_id, metadata, tool_resources)
-    )
+    return tools_modify_thread(thread_id, metadata, tool_resources)
 
 
 @mcp.tool()
-def delete_thread(thread_id: str) -> Dict[str, Any]:
+def delete_thread(thread_id: str) -> DeleteThreadResponse:
     """
     Delete a thread.
 
@@ -252,8 +353,14 @@ def delete_thread(thread_id: str) -> Dict[str, Any]:
 
     Args:
         thread_id: (REQUIRED) The ID of the thread to delete
+
+    Returns:
+        DeleteThreadResponse: The deletion confirmation containing:
+        - id: The ID of the deleted thread
+        - object: Always "thread.deleted"
+        - deleted: Boolean indicating whether the thread was successfully deleted
     """
-    return cast(Dict[str, Any], tools_delete_thread(thread_id))
+    return tools_delete_thread(thread_id)
 
 
 # Message Tools
@@ -264,7 +371,7 @@ def create_message(
     content: Union[str, List[MessageContent]],
     attachments: Optional[List[Dict[str, Any]]] = None,
     metadata: Optional[Dict[str, str]] = None,
-) -> Dict[str, Any]:
+) -> MessageObject:
     """
     Create a message in a thread.
 
@@ -279,21 +386,35 @@ def create_message(
         content: (REQUIRED) The content of the message (string or list of content parts)
         attachments: List of file attachments
         metadata: Key-value pairs (max 16 pairs)
+
+    Returns:
+        MessageObject: The created message containing:
+        - id: The unique identifier for the message
+        - object: Always "thread.message"
+        - created_at: Unix timestamp when the message was created
+        - thread_id: The ID of the thread this message belongs to
+        - role: The role of the entity that created the message (user/assistant)
+        - content: Array of message content (text, images, etc.)
+        - assistant_id: ID of the assistant that authored this message (if applicable)
+        - run_id: ID of the run associated with the message (if applicable)
+        - completed_at: Unix timestamp when the message was completed
+        - incomplete_at: Unix timestamp when the message was marked incomplete
+        - incomplete_details: Details about why the message is incomplete
+        - status: Message status (in_progress/incomplete/completed)
+        - attachments: Files attached to the message
+        - metadata: Key-value pairs attached to the message
     """
-    return cast(
-        Dict[str, Any],
-        tools_create_message(
-            thread_id=thread_id,
-            role=role,
-            content=content,
-            attachments=attachments,
-            metadata=metadata,
-        ),
+    return tools_create_message(
+        thread_id=thread_id,
+        role=role,
+        content=content,
+        attachments=attachments,
+        metadata=metadata,
     )
 
 
 @mcp.tool()
-def get_message(thread_id: str, message_id: str) -> Dict[str, Any]:
+def get_message(thread_id: str, message_id: str) -> MessageObject:
     """
     Get message by ID.
 
@@ -302,8 +423,25 @@ def get_message(thread_id: str, message_id: str) -> Dict[str, Any]:
     Args:
         thread_id: (REQUIRED) The ID of the thread the message belongs to
         message_id: (REQUIRED) The ID of the message to retrieve
+
+    Returns:
+        MessageObject: The message containing:
+        - id: The unique identifier for the message
+        - object: Always "thread.message"
+        - created_at: Unix timestamp when the message was created
+        - thread_id: The ID of the thread this message belongs to
+        - role: The role of the entity that created the message (user/assistant)
+        - content: Array of message content (text, images, etc.)
+        - assistant_id: ID of the assistant that authored this message (if applicable)
+        - run_id: ID of the run associated with the message (if applicable)
+        - completed_at: Unix timestamp when the message was completed
+        - incomplete_at: Unix timestamp when the message was marked incomplete
+        - incomplete_details: Details about why the message is incomplete
+        - status: Message status (in_progress/incomplete/completed)
+        - attachments: Files attached to the message
+        - metadata: Key-value pairs attached to the message
     """
-    return cast(Dict[str, Any], tools_get_message(thread_id, message_id))
+    return tools_get_message(thread_id, message_id)
 
 
 @mcp.tool()
@@ -314,7 +452,7 @@ def list_messages(
     after: Optional[str] = None,
     before: Optional[str] = None,
     run_id: Optional[str] = None,
-) -> Dict[str, Any]:
+) -> MessageListResponse:
     """
     List messages for a thread.
 
@@ -327,17 +465,22 @@ def list_messages(
         after: Cursor for pagination (get messages after this ID)
         before: Cursor for pagination (get messages before this ID)
         run_id: Filter for messages from a specific run
+
+    Returns:
+        MessageListResponse: The list of messages containing:
+        - object: Always "list"
+        - data: Array of MessageObject items
+        - first_id: The ID of the first message in the list
+        - last_id: The ID of the last message in the list
+        - has_more: Whether there are more messages to fetch
     """
-    return cast(
-        Dict[str, Any],
-        tools_list_messages(
-            thread_id=thread_id,
-            limit=limit,
-            order=order,
-            after=after,
-            before=before,
-            run_id=run_id,
-        ),
+    return tools_list_messages(
+        thread_id=thread_id,
+        limit=limit,
+        order=order,
+        after=after,
+        before=before,
+        run_id=run_id,
     )
 
 
@@ -346,7 +489,7 @@ def modify_message(
     thread_id: str,
     message_id: str,
     metadata: Optional[Dict[str, str]] = None,
-) -> Dict[str, Any]:
+) -> MessageObject:
     """
     Modify a message.
 
@@ -356,19 +499,33 @@ def modify_message(
         thread_id: (REQUIRED) The ID of the thread the message belongs to
         message_id: (REQUIRED) The ID of the message to modify
         metadata: Key-value pairs (max 16 pairs)
+
+    Returns:
+        MessageObject: The modified message containing:
+        - id: The unique identifier for the message
+        - object: Always "thread.message"
+        - created_at: Unix timestamp when the message was created
+        - thread_id: The ID of the thread this message belongs to
+        - role: The role of the entity that created the message (user/assistant)
+        - content: Array of message content (text, images, etc.)
+        - assistant_id: ID of the assistant that authored this message (if applicable)
+        - run_id: ID of the run associated with the message (if applicable)
+        - completed_at: Unix timestamp when the message was completed
+        - incomplete_at: Unix timestamp when the message was marked incomplete
+        - incomplete_details: Details about why the message is incomplete
+        - status: Message status (in_progress/incomplete/completed)
+        - attachments: Files attached to the message
+        - metadata: Key-value pairs attached to the message
     """
-    return cast(
-        Dict[str, Any],
-        tools_modify_message(
-            thread_id=thread_id,
-            message_id=message_id,
-            metadata=metadata,
-        ),
+    return tools_modify_message(
+        thread_id=thread_id,
+        message_id=message_id,
+        metadata=metadata,
     )
 
 
 @mcp.tool()
-def delete_message(thread_id: str, message_id: str) -> Dict[str, Any]:
+def delete_message(thread_id: str, message_id: str) -> DeleteMessageResponse:
     """
     Delete a message.
 
@@ -377,8 +534,14 @@ def delete_message(thread_id: str, message_id: str) -> Dict[str, Any]:
     Args:
         thread_id: (REQUIRED) The ID of the thread the message belongs to
         message_id: (REQUIRED) The ID of the message to delete
+
+    Returns:
+        DeleteMessageResponse: The deletion confirmation containing:
+        - id: The ID of the deleted message
+        - object: Always "thread.message.deleted"
+        - deleted: Boolean indicating whether the message was successfully deleted
     """
-    return cast(Dict[str, Any], tools_delete_message(thread_id, message_id))
+    return tools_delete_message(thread_id, message_id)
 
 
 # Run Tools
@@ -404,7 +567,7 @@ def create_run(
     ] = None,
     truncation_strategy: Optional[TruncationStrategy] = None,
     parallel_tool_calls: Optional[bool] = None,
-) -> Dict[str, Any]:
+) -> RunObject:
     """
     Create a run.
 
@@ -428,27 +591,57 @@ def create_run(
         tool_choice: Tool choice configuration
         truncation_strategy: Truncation strategy
         parallel_tool_calls: Boolean for parallel tool calls
+
+    Returns:
+        RunObject: The created run containing:
+        - id: The unique identifier for the run
+        - object: Always "thread.run"
+        - created_at: Unix timestamp when the run was created
+        - thread_id: The ID of the thread being executed on
+        - assistant_id: The ID of the assistant used for execution
+        - status: Current status
+                (queued/in_progress/requires_action/cancelling/cancelled/
+                failed/completed/incomplete/expired)
+        - required_action: Details on action required to continue the run
+        - last_error: The last error associated with this run
+        - expires_at: Unix timestamp when the run will expire
+        - started_at: Unix timestamp when the run was started
+        - cancelled_at: Unix timestamp when the run was cancelled
+        - failed_at: Unix timestamp when the run failed
+        - completed_at: Unix timestamp when the run was completed
+        - model: The model that the assistant used for this run
+        - instructions: The instructions that the assistant used for this run
+        - tools: List of tools that the assistant used for this run
+        - file_ids: List of File IDs the assistant used for this run
+        - metadata: Key-value pairs attached to the run
+        - usage: Usage statistics (completion_tokens, prompt_tokens, total_tokens)
+        - parallel_tool_calls: Whether parallel function calling is enabled
+        - max_completion_tokens: Maximum completion tokens specified
+        - max_prompt_tokens: Maximum prompt tokens specified
+        - temperature: Sampling temperature used for this run
+        - top_p: Nucleus sampling value used for this run
+        - response_format: Format specification for model output
+        - tool_choice: Controls which tool is called by the model
+        - truncation_strategy: Controls for thread truncation prior to run
+        - incomplete_details: Details on why the run is incomplete
     """
-    return cast(
-        Dict[str, Any],
-        tools_create_run(
-            thread_id=thread_id,
-            assistant_id=assistant_id,
-            model=model,
-            instructions=instructions,
-            additional_instructions=additional_instructions,
-            tools=tools,
-            metadata=metadata,
-            stream=stream,
-            temperature=temperature,
-            top_p=top_p,
-            max_completion_tokens=max_completion_tokens,
-            max_prompt_tokens=max_prompt_tokens,
-            response_format=response_format,
-            tool_choice=tool_choice,
-            truncation_strategy=truncation_strategy,
-            parallel_tool_calls=parallel_tool_calls,
-        ),
+    return tools_create_run(
+        thread_id=thread_id,
+        assistant_id=assistant_id,
+        model=model,
+        instructions=instructions,
+        additional_instructions=additional_instructions,
+        tools=tools,
+        metadata=metadata,
+        stream=stream,
+        temperature=temperature,
+        top_p=top_p,
+        max_completion_tokens=max_completion_tokens,
+        max_prompt_tokens=max_prompt_tokens,
+        response_format=response_format,
+        tool_choice=tool_choice,
+        truncation_strategy=truncation_strategy,
+        parallel_tool_calls=parallel_tool_calls,
     )
 
 
@@ -473,7 +666,7 @@ def create_thread_and_run(
     ] = None,
     truncation_strategy: Optional[TruncationStrategy] = None,
     parallel_tool_calls: Optional[bool] = None,
-) -> Dict[str, Any]:
+) -> RunObject:
     """
     Create a thread and run it in one request.
 
@@ -496,26 +689,56 @@ def create_thread_and_run(
         tool_choice: Tool choice configuration
         truncation_strategy: Truncation strategy
         parallel_tool_calls: Boolean for parallel tool calls
+
+    Returns:
+        RunObject: The created run containing:
+        - id: The unique identifier for the run
+        - object: Always "thread.run"
+        - created_at: Unix timestamp when the run was created
+        - thread_id: The ID of the thread being executed on
+        - assistant_id: The ID of the assistant used for execution
+        - status: Current status
+                (queued/in_progress/requires_action/cancelling/cancelled/
+                failed/completed/incomplete/expired)
+        - required_action: Details on action required to continue the run
+        - last_error: The last error associated with this run
+        - expires_at: Unix timestamp when the run will expire
+        - started_at: Unix timestamp when the run was started
+        - cancelled_at: Unix timestamp when the run was cancelled
+        - failed_at: Unix timestamp when the run failed
+        - completed_at: Unix timestamp when the run was completed
+        - model: The model that the assistant used for this run
+        - instructions: The instructions that the assistant used for this run
+        - tools: List of tools that the assistant used for this run
+        - file_ids: List of File IDs the assistant used for this run
+        - metadata: Key-value pairs attached to the run
+        - usage: Usage statistics (completion_tokens, prompt_tokens, total_tokens)
+        - parallel_tool_calls: Whether parallel function calling is enabled
+        - max_completion_tokens: Maximum completion tokens specified
+        - max_prompt_tokens: Maximum prompt tokens specified
+        - temperature: Sampling temperature used for this run
+        - top_p: Nucleus sampling value used for this run
+        - response_format: Format specification for model output
+        - tool_choice: Controls which tool is called by the model
+        - truncation_strategy: Controls for thread truncation prior to run
+        - incomplete_details: Details on why the run is incomplete
     """
-    return cast(
-        Dict[str, Any],
-        tools_create_thread_and_run(
-            assistant_id=assistant_id,
-            thread=thread,
-            model=model,
-            instructions=instructions,
-            tools=tools,
-            metadata=metadata,
-            stream=stream,
-            temperature=temperature,
-            top_p=top_p,
-            max_completion_tokens=max_completion_tokens,
-            max_prompt_tokens=max_prompt_tokens,
-            response_format=response_format,
-            tool_choice=tool_choice,
-            truncation_strategy=truncation_strategy,
-            parallel_tool_calls=parallel_tool_calls,
-        ),
+    return tools_create_thread_and_run(
+        assistant_id=assistant_id,
+        thread=thread,
+        model=model,
+        instructions=instructions,
+        tools=tools,
+        metadata=metadata,
+        stream=stream,
+        temperature=temperature,
+        top_p=top_p,
+        max_completion_tokens=max_completion_tokens,
+        max_prompt_tokens=max_prompt_tokens,
+        response_format=response_format,
+        tool_choice=tool_choice,
+        truncation_strategy=truncation_strategy,
+        parallel_tool_calls=parallel_tool_calls,
     )
 
 
@@ -526,7 +749,7 @@ def list_runs(
     order: Optional[Literal["asc", "desc"]] = None,
     after: Optional[str] = None,
     before: Optional[str] = None,
-) -> Dict[str, Any]:
+) -> RunListResponse:
     """
     List runs for a thread.
 
@@ -538,21 +761,26 @@ def list_runs(
         order: Sort order ('asc' or 'desc', default 'desc')
         after: Cursor for pagination (get runs after this ID)
         before: Cursor for pagination (get runs before this ID)
+
+    Returns:
+        RunListResponse: The list of runs containing:
+        - object: Always "list"
+        - data: Array of RunObject items
+        - first_id: The ID of the first run in the list
+        - last_id: The ID of the last run in the list
+        - has_more: Whether there are more runs available
     """
-    return cast(
-        Dict[str, Any],
-        tools_list_runs(
-            thread_id=thread_id,
-            limit=limit,
-            order=order,
-            after=after,
-            before=before,
-        ),
+    return tools_list_runs(
+        thread_id=thread_id,
+        limit=limit,
+        order=order,
+        after=after,
+        before=before,
     )
 
 
 @mcp.tool()
-def get_run(thread_id: str, run_id: str) -> Dict[str, Any]:
+def get_run(thread_id: str, run_id: str) -> RunObject:
     """
     Get run by ID.
 
@@ -561,8 +789,41 @@ def get_run(thread_id: str, run_id: str) -> Dict[str, Any]:
     Args:
         thread_id: (REQUIRED) The ID of the thread the run belongs to
         run_id: (REQUIRED) The ID of the run to retrieve
+
+    Returns:
+        RunObject: The created run containing:
+        - id: The unique identifier for the run
+        - object: Always "thread.run"
+        - created_at: Unix timestamp when the run was created
+        - thread_id: The ID of the thread being executed on
+        - assistant_id: The ID of the assistant used for execution
+        - status: Current status
+                (queued/in_progress/requires_action/cancelling/cancelled/
+                failed/completed/incomplete/expired)
+        - required_action: Details on action required to continue the run
+        - last_error: The last error associated with this run
+        - expires_at: Unix timestamp when the run will expire
+        - started_at: Unix timestamp when the run was started
+        - cancelled_at: Unix timestamp when the run was cancelled
+        - failed_at: Unix timestamp when the run failed
+        - completed_at: Unix timestamp when the run was completed
+        - model: The model that the assistant used for this run
+        - instructions: The instructions that the assistant used for this run
+        - tools: List of tools that the assistant used for this run
+        - file_ids: List of File IDs the assistant used for this run
+        - metadata: Key-value pairs attached to the run
+        - usage: Usage statistics (completion_tokens, prompt_tokens, total_tokens)
+        - parallel_tool_calls: Whether parallel function calling is enabled
+        - max_completion_tokens: Maximum completion tokens specified
+        - max_prompt_tokens: Maximum prompt tokens specified
+        - temperature: Sampling temperature used for this run
+        - top_p: Nucleus sampling value used for this run
+        - response_format: Format specification for model output
+        - tool_choice: Controls which tool is called by the model
+        - truncation_strategy: Controls for thread truncation prior to run
+        - incomplete_details: Details on why the run is incomplete
     """
-    return cast(Dict[str, Any], tools_get_run(thread_id=thread_id, run_id=run_id))
+    return tools_get_run(thread_id=thread_id, run_id=run_id)
 
 
 @mcp.tool()
@@ -570,7 +831,7 @@ def modify_run(
     thread_id: str,
     run_id: str,
     metadata: Optional[Dict[str, str]] = None,
-) -> Dict[str, Any]:
+) -> RunObject:
     """
     Modify a run.
 
@@ -580,11 +841,41 @@ def modify_run(
         thread_id: (REQUIRED) The ID of the thread the run belongs to
         run_id: (REQUIRED) The ID of the run to modify
         metadata: Key-value pairs (max 16 pairs)
+
+    Returns:
+        RunObject: The created run containing:
+        - id: The unique identifier for the run
+        - object: Always "thread.run"
+        - created_at: Unix timestamp when the run was created
+        - thread_id: The ID of the thread being executed on
+        - assistant_id: The ID of the assistant used for execution
+        - status: Current status
+                (queued/in_progress/requires_action/cancelling/cancelled/
+                failed/completed/incomplete/expired)
+        - required_action: Details on action required to continue the run
+        - last_error: The last error associated with this run
+        - expires_at: Unix timestamp when the run will expire
+        - started_at: Unix timestamp when the run was started
+        - cancelled_at: Unix timestamp when the run was cancelled
+        - failed_at: Unix timestamp when the run failed
+        - completed_at: Unix timestamp when the run was completed
+        - model: The model that the assistant used for this run
+        - instructions: The instructions that the assistant used for this run
+        - tools: List of tools that the assistant used for this run
+        - file_ids: List of File IDs the assistant used for this run
+        - metadata: Key-value pairs attached to the run
+        - usage: Usage statistics (completion_tokens, prompt_tokens, total_tokens)
+        - parallel_tool_calls: Whether parallel function calling is enabled
+        - max_completion_tokens: Maximum completion tokens specified
+        - max_prompt_tokens: Maximum prompt tokens specified
+        - temperature: Sampling temperature used for this run
+        - top_p: Nucleus sampling value used for this run
+        - response_format: Format specification for model output
+        - tool_choice: Controls which tool is called by the model
+        - truncation_strategy: Controls for thread truncation prior to run
+        - incomplete_details: Details on why the run is incomplete
     """
-    return cast(
-        Dict[str, Any],
-        tools_modify_run(thread_id=thread_id, run_id=run_id, metadata=metadata),
-    )
+    return tools_modify_run(thread_id=thread_id, run_id=run_id, metadata=metadata)
 
 
 @mcp.tool()
@@ -593,7 +884,7 @@ def submit_tool_outputs(
     run_id: str,
     tool_outputs: List[Dict[str, str]],
     stream: Optional[bool] = None,
-) -> Dict[str, Any]:
+) -> RunObject:
     """
     Submit outputs for tool calls.
 
@@ -604,20 +895,50 @@ def submit_tool_outputs(
         run_id: (REQUIRED) The ID of the run to submit outputs for
         tool_outputs: (REQUIRED) List of tool outputs with tool_call_id and output
         stream: Boolean for streaming mode
+
+    Returns:
+        RunObject: The created run containing:
+        - id: The unique identifier for the run
+        - object: Always "thread.run"
+        - created_at: Unix timestamp when the run was created
+        - thread_id: The ID of the thread being executed on
+        - assistant_id: The ID of the assistant used for execution
+        - status: Current status
+                (queued/in_progress/requires_action/cancelling/cancelled/
+                failed/completed/incomplete/expired)
+        - required_action: Details on action required to continue the run
+        - last_error: The last error associated with this run
+        - expires_at: Unix timestamp when the run will expire
+        - started_at: Unix timestamp when the run was started
+        - cancelled_at: Unix timestamp when the run was cancelled
+        - failed_at: Unix timestamp when the run failed
+        - completed_at: Unix timestamp when the run was completed
+        - model: The model that the assistant used for this run
+        - instructions: The instructions that the assistant used for this run
+        - tools: List of tools that the assistant used for this run
+        - file_ids: List of File IDs the assistant used for this run
+        - metadata: Key-value pairs attached to the run
+        - usage: Usage statistics (completion_tokens, prompt_tokens, total_tokens)
+        - parallel_tool_calls: Whether parallel function calling is enabled
+        - max_completion_tokens: Maximum completion tokens specified
+        - max_prompt_tokens: Maximum prompt tokens specified
+        - temperature: Sampling temperature used for this run
+        - top_p: Nucleus sampling value used for this run
+        - response_format: Format specification for model output
+        - tool_choice: Controls which tool is called by the model
+        - truncation_strategy: Controls for thread truncation prior to run
+        - incomplete_details: Details on why the run is incomplete
     """
-    return cast(
-        Dict[str, Any],
-        tools_submit_tool_outputs(
-            thread_id=thread_id,
-            run_id=run_id,
-            tool_outputs=tool_outputs,
-            stream=stream,
-        ),
+    return tools_submit_tool_outputs(
+        thread_id=thread_id,
+        run_id=run_id,
+        tool_outputs=tool_outputs,
+        stream=stream,
     )
 
 
 @mcp.tool()
-def cancel_run(thread_id: str, run_id: str) -> Dict[str, Any]:
+def cancel_run(thread_id: str, run_id: str) -> RunObject:
     """
     Cancel a run.
 
@@ -626,8 +947,41 @@ def cancel_run(thread_id: str, run_id: str) -> Dict[str, Any]:
     Args:
         thread_id: (REQUIRED) The ID of the thread the run belongs to
         run_id: (REQUIRED) The ID of the run to cancel
+
+    Returns:
+        RunObject: The created run containing:
+        - id: The unique identifier for the run
+        - object: Always "thread.run"
+        - created_at: Unix timestamp when the run was created
+        - thread_id: The ID of the thread being executed on
+        - assistant_id: The ID of the assistant used for execution
+        - status: Current status
+                (queued/in_progress/requires_action/cancelling/cancelled/
+                failed/completed/incomplete/expired)
+        - required_action: Details on action required to continue the run
+        - last_error: The last error associated with this run
+        - expires_at: Unix timestamp when the run will expire
+        - started_at: Unix timestamp when the run was started
+        - cancelled_at: Unix timestamp when the run was cancelled
+        - failed_at: Unix timestamp when the run failed
+        - completed_at: Unix timestamp when the run was completed
+        - model: The model that the assistant used for this run
+        - instructions: The instructions that the assistant used for this run
+        - tools: List of tools that the assistant used for this run
+        - file_ids: List of File IDs the assistant used for this run
+        - metadata: Key-value pairs attached to the run
+        - usage: Usage statistics (completion_tokens, prompt_tokens, total_tokens)
+        - parallel_tool_calls: Whether parallel function calling is enabled
+        - max_completion_tokens: Maximum completion tokens specified
+        - max_prompt_tokens: Maximum prompt tokens specified
+        - temperature: Sampling temperature used for this run
+        - top_p: Nucleus sampling value used for this run
+        - response_format: Format specification for model output
+        - tool_choice: Controls which tool is called by the model
+        - truncation_strategy: Controls for thread truncation prior to run
+        - incomplete_details: Details on why the run is incomplete
     """
-    return cast(Dict[str, Any], tools_cancel_run(thread_id=thread_id, run_id=run_id))
+    return tools_cancel_run(thread_id=thread_id, run_id=run_id)
 
 
 # Run Step Tools
@@ -640,7 +994,7 @@ def list_run_steps(
     after: Optional[str] = None,
     before: Optional[str] = None,
     include: Optional[List[RunStepInclude]] = None,
-) -> Dict[str, Any]:
+) -> RunStepListResponse:
     """
     List run steps for a run.
 
@@ -656,18 +1010,23 @@ def list_run_steps(
         include: List of additional fields to include in the response
                 Currently only supports
                 'step_details.tool_calls[*].file_search.results[*].content'
+
+    Returns:
+        RunStepListResponse: The list of run steps containing:
+        - object: Always "list"
+        - data: Array of RunStepObject items
+        - first_id: The ID of the first run step in the list
+        - last_id: The ID of the last run step in the list
+        - has_more: Whether there are more run steps to fetch
     """
-    return cast(
-        Dict[str, Any],
-        tools_list_run_steps(
-            thread_id=thread_id,
-            run_id=run_id,
-            limit=limit,
-            order=order,
-            after=after,
-            before=before,
-            include=include,
-        ),
+    return tools_list_run_steps(
+        thread_id=thread_id,
+        run_id=run_id,
+        limit=limit,
+        order=order,
+        after=after,
+        before=before,
+        include=include,
     )
 
 
@@ -677,7 +1036,7 @@ def get_run_step(
     run_id: str,
     step_id: str,
     include: Optional[List[RunStepInclude]] = None,
-) -> Dict[str, Any]:
+) -> RunStepObject:
     """
     Get run step by ID.
 
@@ -690,15 +1049,32 @@ def get_run_step(
         include: List of additional fields to include in the response
                 Currently only supports
                 'step_details.tool_calls[*].file_search.results[*].content'
+
+    Returns:
+        RunStepObject: The run step containing:
+        - id: The unique identifier for the run step
+        - object: Always "thread.run.step"
+        - created_at: Unix timestamp when the run step was created
+        - run_id: The ID of the run this step is a part of
+        - assistant_id: The ID of the assistant associated with this run step
+        - thread_id: The ID of the thread this run step is a part of
+        - type: The type of run step (message_creation/tool_calls)
+        - status: The status of the run step
+                (in_progress/cancelled/failed/completed/expired)
+        - cancelled_at: Unix timestamp when the run step was cancelled
+        - completed_at: Unix timestamp when the run step was completed
+        - expired_at: Unix timestamp when the run step expired
+        - failed_at: Unix timestamp when the run step failed
+        - last_error: The last error associated with this run step
+        - metadata: Key-value pairs attached to the run step
+        - step_details: The details of the run step (message creation or tool calls)
+        - usage: Usage statistics related to the run step
     """
-    return cast(
-        Dict[str, Any],
-        tools_get_run_step(
-            thread_id=thread_id,
-            run_id=run_id,
-            step_id=step_id,
-            include=include,
-        ),
+    return tools_get_run_step(
+        thread_id=thread_id,
+        run_id=run_id,
+        step_id=step_id,
+        include=include,
     )
 
 
