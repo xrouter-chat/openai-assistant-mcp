@@ -5,10 +5,13 @@ from typing import List, Literal, Optional, cast
 from openai import NOT_GIVEN, OpenAI
 from openai.types.beta.threads.runs import RunStepInclude
 
+from src.config.settings import Settings
+
 from .models import RunStepListResponse, RunStepObject
 
 logger = logging.getLogger(__name__)
-client = OpenAI()
+settings = Settings()
+client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
 
 def list_run_steps(

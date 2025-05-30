@@ -4,6 +4,8 @@ from typing import Any, Dict, List, Optional, Union, cast
 
 from openai import OpenAI
 
+from src.config.settings import Settings
+
 from ..messages import MessageAttachment
 from ..models import ToolResources
 from .models import (
@@ -15,7 +17,8 @@ from .models import (
 )
 
 logger = logging.getLogger(__name__)
-client = OpenAI()
+settings = Settings()
+client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
 
 def create_thread(

@@ -10,10 +10,12 @@ class Settings(BaseSettings):
 
     # Environment
     ENVIRONMENT: str = "development"
+    LOG_LEVEL: str = "INFO"
 
     # Project
     PROJECT_NAME: str = "openai-assistant-mcp"
     VERSION: str = "0.1.0"
+    REGISTRY_ID: str = ""
 
     # Host to bind the server to
     # NOTE: Using 0.0.0.0 is intentional for container environments,

@@ -4,11 +4,14 @@ from typing import Any, Dict, List, Literal, Optional, Union, cast
 
 from openai import OpenAI
 
+from src.config.settings import Settings
+
 from ..models import CodeInterpreterTool, FileSearchTool, FunctionTool, ResponseFormat
 from .models import RunListResponse, RunObject, ToolChoice, TruncationStrategy
 
 logger = logging.getLogger(__name__)
-client = OpenAI()
+settings = Settings()
+client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
 
 def create_run(

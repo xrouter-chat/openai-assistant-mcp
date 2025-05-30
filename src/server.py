@@ -9,6 +9,8 @@ from typing import Any, Dict, List, Literal, Optional, Union
 from mcp.server.fastmcp import FastMCP
 from openai.types.beta.threads.runs import RunStepInclude
 
+from .config.settings import Settings
+
 # Tool models from common
 # Common models
 from .tools import (
@@ -73,12 +75,25 @@ from .tools.threads import delete_thread as tools_delete_thread
 from .tools.threads import get_thread as tools_get_thread
 from .tools.threads import modify_thread as tools_modify_thread
 
-# Get logger
+# Load settings
+settings = Settings()
+
+# Configure logging
+logging.basicConfig(
+    level=getattr(logging, settings.LOG_LEVEL),
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 logger = logging.getLogger(__name__)
+logger.info("Loaded settings: %s", settings)
 
 # Initialize FastMCP server
 logger.info("Creating FastMCP server")
-mcp = FastMCP("openai-assistant-api")
+mcp = FastMCP(
+    "openai-assistant-api",
+    host=settings.HOST,
+    port=settings.PORT,
+)
 logger.info("FastMCP server created: %s", mcp)
 
 

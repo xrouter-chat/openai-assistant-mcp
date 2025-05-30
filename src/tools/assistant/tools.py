@@ -4,6 +4,8 @@ from typing import Dict, List, Literal, Optional, cast
 
 from openai import OpenAI
 
+from src.config.settings import Settings
+
 from ..models import ResponseFormat, Tool, ToolResources
 from .models import (
     AssistantListResponse,
@@ -14,7 +16,8 @@ from .models import (
 )
 
 logger = logging.getLogger(__name__)
-client = OpenAI()
+settings = Settings()
+client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
 
 def create_assistant(
