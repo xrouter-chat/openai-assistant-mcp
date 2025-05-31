@@ -7,7 +7,30 @@ import logging
 from typing import Any, Dict, List, Literal, Optional, Union
 
 from mcp.server.fastmcp import FastMCP
+
+# Run tools
+# Run models
+from openai.pagination import SyncCursorPage
+
+# Assistant tools
+from openai.types.beta.assistant import Assistant
+from openai.types.beta.assistant_deleted import AssistantDeleted
+
+# Thread tools
+# Thread models
+from openai.types.beta.thread import Thread
+from openai.types.beta.thread_deleted import ThreadDeleted
+
+# Message tools
+# Message models
+from openai.types.beta.threads.message import Message
+from openai.types.beta.threads.message_deleted import MessageDeleted
+from openai.types.beta.threads.run import Run
+
+# Run step tools
+# Run step models
 from openai.types.beta.threads.runs import RunStepInclude
+from openai.types.beta.threads.runs.run_step import RunStep
 
 from .config.settings import Settings
 
@@ -22,43 +45,20 @@ from .tools import (
     Tool,
     ToolResources,
 )
-
-# Assistant tools
-# Assistant models
-from .tools.assistant import (
-    AssistantListResponse,
-    AssistantObject,
-    DeleteAssistantResponse,
-)
 from .tools.assistant import create_assistant as tools_create_assistant
 from .tools.assistant import delete_assistant as tools_delete_assistant
 from .tools.assistant import get_assistant as tools_get_assistant
 from .tools.assistant import list_assistants as tools_list_assistants
 from .tools.assistant import modify_assistant as tools_modify_assistant
-
-# Message tools
-# Message models
-from .tools.messages import (
-    DeleteMessageResponse,
-    MessageContent,
-    MessageListResponse,
-    MessageObject,
-)
+from .tools.messages import MessageContent
 from .tools.messages import create_message as tools_create_message
 from .tools.messages import delete_message as tools_delete_message
 from .tools.messages import get_message as tools_get_message
 from .tools.messages import list_messages as tools_list_messages
 from .tools.messages import modify_message as tools_modify_message
-
-# Run step tools
-# Run step models
-from .tools.run_steps import RunStepListResponse, RunStepObject
 from .tools.run_steps import get_run_step as tools_get_run_step
 from .tools.run_steps import list_run_steps as tools_list_run_steps
-
-# Run tools
-# Run models
-from .tools.runs import RunListResponse, RunObject, ToolChoice, TruncationStrategy
+from .tools.runs import ToolChoice, TruncationStrategy
 from .tools.runs import cancel_run as tools_cancel_run
 from .tools.runs import create_run as tools_create_run
 from .tools.runs import create_thread_and_run as tools_create_thread_and_run
@@ -66,10 +66,6 @@ from .tools.runs import get_run as tools_get_run
 from .tools.runs import list_runs as tools_list_runs
 from .tools.runs import modify_run as tools_modify_run
 from .tools.runs import submit_tool_outputs as tools_submit_tool_outputs
-
-# Thread tools
-# Thread models
-from .tools.threads import DeleteThreadResponse, ThreadObject
 from .tools.threads import create_thread as tools_create_thread
 from .tools.threads import delete_thread as tools_delete_thread
 from .tools.threads import get_thread as tools_get_thread
@@ -111,7 +107,7 @@ def create_assistant(
     top_p: Optional[float] = None,
     response_format: Optional[ResponseFormat] = None,
     reasoning_effort: Optional[Literal["low", "medium", "high"]] = None,
-) -> AssistantObject:
+) -> Assistant:
     """
     Create an assistant.
 
@@ -163,7 +159,7 @@ def create_assistant(
 
 
 @mcp.tool()
-def get_assistant(assistant_id: str) -> AssistantObject:
+def get_assistant(assistant_id: str) -> Assistant:
     """
     Get assistant by ID.
 
@@ -192,7 +188,7 @@ def get_assistant(assistant_id: str) -> AssistantObject:
 
 
 @mcp.tool()
-def list_assistants() -> AssistantListResponse:
+def list_assistants() -> SyncCursorPage[Assistant]:
     """List assistants. Use this to view all available assistants."""
     return tools_list_assistants()
 
@@ -211,7 +207,7 @@ def modify_assistant(
     top_p: Optional[float] = None,
     response_format: Optional[ResponseFormat] = None,
     reasoning_effort: Optional[Literal["low", "medium", "high"]] = None,
-) -> AssistantObject:
+) -> Assistant:
     """
     Modify an assistant.
 
@@ -264,7 +260,7 @@ def modify_assistant(
 
 
 @mcp.tool()
-def delete_assistant(assistant_id: str) -> DeleteAssistantResponse:
+def delete_assistant(assistant_id: str) -> AssistantDeleted:
     """
     Delete an assistant.
 
@@ -288,7 +284,7 @@ def create_thread(
     messages: Optional[List[Dict[str, Any]]] = None,
     metadata: Optional[Dict[str, str]] = None,
     tool_resources: Optional[Union[Dict[str, Any], ToolResources]] = None,
-) -> ThreadObject:
+) -> Thread:
     """
     Create a thread.
 
@@ -312,7 +308,7 @@ def create_thread(
 
 
 @mcp.tool()
-def get_thread(thread_id: str) -> ThreadObject:
+def get_thread(thread_id: str) -> Thread:
     """
     Get thread by ID.
 
@@ -337,7 +333,7 @@ def modify_thread(
     thread_id: str,
     metadata: Optional[Dict[str, str]] = None,
     tool_resources: Optional[Union[Dict[str, Any], ToolResources]] = None,
-) -> ThreadObject:
+) -> Thread:
     """
     Modify a thread.
 
@@ -360,7 +356,7 @@ def modify_thread(
 
 
 @mcp.tool()
-def delete_thread(thread_id: str) -> DeleteThreadResponse:
+def delete_thread(thread_id: str) -> ThreadDeleted:
     """
     Delete a thread.
 
@@ -370,7 +366,7 @@ def delete_thread(thread_id: str) -> DeleteThreadResponse:
         thread_id: (REQUIRED) The ID of the thread to delete
 
     Returns:
-        DeleteThreadResponse: The deletion confirmation containing:
+        ThreadDeleted: The deletion confirmation containing:
         - id: The ID of the deleted thread
         - object: Always "thread.deleted"
         - deleted: Boolean indicating whether the thread was successfully deleted
@@ -386,7 +382,7 @@ def create_message(
     content: Union[str, List[MessageContent]],
     attachments: Optional[List[Dict[str, Any]]] = None,
     metadata: Optional[Dict[str, str]] = None,
-) -> MessageObject:
+) -> Message:
     """
     Create a message in a thread.
 
@@ -429,7 +425,7 @@ def create_message(
 
 
 @mcp.tool()
-def get_message(thread_id: str, message_id: str) -> MessageObject:
+def get_message(thread_id: str, message_id: str) -> Message:
     """
     Get message by ID.
 
@@ -467,7 +463,7 @@ def list_messages(
     after: Optional[str] = None,
     before: Optional[str] = None,
     run_id: Optional[str] = None,
-) -> MessageListResponse:
+) -> SyncCursorPage[Message]:
     """
     List messages for a thread.
 
@@ -504,7 +500,7 @@ def modify_message(
     thread_id: str,
     message_id: str,
     metadata: Optional[Dict[str, str]] = None,
-) -> MessageObject:
+) -> Message:
     """
     Modify a message.
 
@@ -540,7 +536,7 @@ def modify_message(
 
 
 @mcp.tool()
-def delete_message(thread_id: str, message_id: str) -> DeleteMessageResponse:
+def delete_message(thread_id: str, message_id: str) -> MessageDeleted:
     """
     Delete a message.
 
@@ -582,7 +578,7 @@ def create_run(
     ] = None,
     truncation_strategy: Optional[TruncationStrategy] = None,
     parallel_tool_calls: Optional[bool] = None,
-) -> RunObject:
+) -> Run:
     """
     Create a run.
 
@@ -681,7 +677,7 @@ def create_thread_and_run(
     ] = None,
     truncation_strategy: Optional[TruncationStrategy] = None,
     parallel_tool_calls: Optional[bool] = None,
-) -> RunObject:
+) -> Run:
     """
     Create a thread and run it in one request.
 
@@ -764,7 +760,7 @@ def list_runs(
     order: Optional[Literal["asc", "desc"]] = None,
     after: Optional[str] = None,
     before: Optional[str] = None,
-) -> RunListResponse:
+) -> SyncCursorPage[Run]:
     """
     List runs for a thread.
 
@@ -795,7 +791,7 @@ def list_runs(
 
 
 @mcp.tool()
-def get_run(thread_id: str, run_id: str) -> RunObject:
+def get_run(thread_id: str, run_id: str) -> Run:
     """
     Get run by ID.
 
@@ -846,7 +842,7 @@ def modify_run(
     thread_id: str,
     run_id: str,
     metadata: Optional[Dict[str, str]] = None,
-) -> RunObject:
+) -> Run:
     """
     Modify a run.
 
@@ -899,7 +895,7 @@ def submit_tool_outputs(
     run_id: str,
     tool_outputs: List[Dict[str, str]],
     stream: Optional[bool] = None,
-) -> RunObject:
+) -> Run:
     """
     Submit outputs for tool calls.
 
@@ -953,7 +949,7 @@ def submit_tool_outputs(
 
 
 @mcp.tool()
-def cancel_run(thread_id: str, run_id: str) -> RunObject:
+def cancel_run(thread_id: str, run_id: str) -> Run:
     """
     Cancel a run.
 
@@ -1009,7 +1005,7 @@ def list_run_steps(
     after: Optional[str] = None,
     before: Optional[str] = None,
     include: Optional[List[RunStepInclude]] = None,
-) -> RunStepListResponse:
+) -> SyncCursorPage[RunStep]:
     """
     List run steps for a run.
 
@@ -1051,7 +1047,7 @@ def get_run_step(
     run_id: str,
     step_id: str,
     include: Optional[List[RunStepInclude]] = None,
-) -> RunStepObject:
+) -> RunStep:
     """
     Get run step by ID.
 

@@ -1,13 +1,15 @@
 """OpenAI Run API tools implementation."""
 import logging
-from typing import Any, Dict, List, Literal, Optional, Union, cast
+from typing import Any, Dict, List, Literal, Optional, Union
 
 from openai import OpenAI
+from openai.pagination import SyncCursorPage
+from openai.types.beta.threads.run import Run
 
 from src.config.settings import Settings
 
 from ..models import CodeInterpreterTool, FileSearchTool, FunctionTool, ResponseFormat
-from .models import RunListResponse, RunObject, ToolChoice, TruncationStrategy
+from .models import ToolChoice, TruncationStrategy
 
 logger = logging.getLogger(__name__)
 settings = Settings()
@@ -35,7 +37,7 @@ def create_run(
     ] = None,
     truncation_strategy: Optional[TruncationStrategy] = None,
     parallel_tool_calls: Optional[bool] = None,
-) -> RunObject:
+) -> Run:
     """
     Create a run.
 
@@ -58,7 +60,7 @@ def create_run(
         parallel_tool_calls: Boolean for parallel tool calls
 
     Returns:
-        RunObject: The created run
+        Run: The created run from OpenAI SDK
     """
     logger.info(f"Creating run for thread {thread_id} with assistant {assistant_id}")
 
@@ -92,7 +94,7 @@ def create_run(
     response = client.beta.threads.runs.create(thread_id=thread_id, **request_data)
     logger.info(f"Got response from OpenAI: {response}")
 
-    return cast(RunObject, RunObject.model_validate(response))
+    return response
 
 
 def create_thread_and_run(
@@ -115,7 +117,7 @@ def create_thread_and_run(
     ] = None,
     truncation_strategy: Optional[TruncationStrategy] = None,
     parallel_tool_calls: Optional[bool] = None,
-) -> RunObject:
+) -> Run:
     """
     Create a thread and run it in one request.
 
@@ -137,7 +139,7 @@ def create_thread_and_run(
         parallel_tool_calls: Boolean for parallel tool calls
 
     Returns:
-        RunObject: The created run
+        Run: The created run from OpenAI SDK
     """
     logger.info(f"Creating thread and run with assistant {assistant_id}")
 
@@ -171,7 +173,7 @@ def create_thread_and_run(
     response = client.beta.threads.create_and_run(**request_data)
     logger.info(f"Got response from OpenAI: {response}")
 
-    return cast(RunObject, RunObject.model_validate(response))
+    return response
 
 
 def list_runs(
@@ -180,7 +182,7 @@ def list_runs(
     order: Optional[Literal["asc", "desc"]] = None,
     after: Optional[str] = None,
     before: Optional[str] = None,
-) -> RunListResponse:
+) -> SyncCursorPage[Run]:
     """
     List runs for a thread.
 
@@ -192,7 +194,7 @@ def list_runs(
         before: Cursor for pagination (get runs before this ID)
 
     Returns:
-        RunListResponse: The list of runs
+        SyncCursorPage[Run]: The list of runs from OpenAI SDK
     """
     logger.info(f"Listing runs for thread {thread_id}")
 
@@ -208,10 +210,10 @@ def list_runs(
     response = client.beta.threads.runs.list(thread_id=thread_id, **params)
     logger.info(f"Got response from OpenAI: {response}")
 
-    return cast(RunListResponse, RunListResponse.model_validate(response))
+    return response
 
 
-def get_run(thread_id: str, run_id: str) -> RunObject:
+def get_run(thread_id: str, run_id: str) -> Run:
     """
     Get run by ID.
 
@@ -220,19 +222,19 @@ def get_run(thread_id: str, run_id: str) -> RunObject:
         run_id: (REQUIRED) The ID of the run to retrieve
 
     Returns:
-        RunObject: The retrieved run
+        Run: The retrieved run from OpenAI SDK
     """
     logger.info(f"Getting run {run_id} from thread {thread_id}")
 
     response = client.beta.threads.runs.retrieve(thread_id=thread_id, run_id=run_id)
-    return cast(RunObject, RunObject.model_validate(response))
+    return response
 
 
 def modify_run(
     thread_id: str,
     run_id: str,
     metadata: Optional[Dict[str, str]] = None,
-) -> RunObject:
+) -> Run:
     """
     Modify a run.
 
@@ -242,14 +244,14 @@ def modify_run(
         metadata: Key-value pairs (max 16 pairs)
 
     Returns:
-        RunObject: The modified run
+        Run: The modified run from OpenAI SDK
     """
     logger.info(f"Modifying run {run_id} in thread {thread_id}")
 
     response = client.beta.threads.runs.update(
         thread_id=thread_id, run_id=run_id, metadata=metadata
     )
-    return cast(RunObject, RunObject.model_validate(response))
+    return response
 
 
 def submit_tool_outputs(
@@ -257,7 +259,7 @@ def submit_tool_outputs(
     run_id: str,
     tool_outputs: List[Dict[str, str]],
     stream: Optional[bool] = None,
-) -> RunObject:
+) -> Run:
     """
     Submit outputs for tool calls.
 
@@ -268,7 +270,7 @@ def submit_tool_outputs(
         stream: Boolean for streaming mode
 
     Returns:
-        RunObject: The updated run
+        Run: The updated run from OpenAI SDK
     """
     logger.info(f"Submitting tool outputs for run {run_id} in thread {thread_id}")
 
@@ -282,10 +284,10 @@ def submit_tool_outputs(
     response = client.beta.threads.runs.submit_tool_outputs(
         thread_id=thread_id, run_id=run_id, **request_data
     )
-    return cast(RunObject, RunObject.model_validate(response))
+    return response
 
 
-def cancel_run(thread_id: str, run_id: str) -> RunObject:
+def cancel_run(thread_id: str, run_id: str) -> Run:
     """
     Cancel a run.
 
@@ -294,9 +296,9 @@ def cancel_run(thread_id: str, run_id: str) -> RunObject:
         run_id: (REQUIRED) The ID of the run to cancel
 
     Returns:
-        RunObject: The cancelled run
+        Run: The cancelled run from OpenAI SDK
     """
     logger.info(f"Cancelling run {run_id} in thread {thread_id}")
 
     response = client.beta.threads.runs.cancel(thread_id=thread_id, run_id=run_id)
-    return cast(RunObject, RunObject.model_validate(response))
+    return response

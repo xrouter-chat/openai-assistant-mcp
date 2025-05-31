@@ -1,18 +1,18 @@
 """OpenAI Message API tools implementation."""
 import logging
-from typing import Any, Dict, List, Literal, Optional, Union, cast
+from typing import Any, Dict, List, Literal, Optional, Union
 
 from openai import OpenAI
+from openai.pagination import SyncCursorPage
+from openai.types.beta.threads.message import Message
+from openai.types.beta.threads.message_deleted import MessageDeleted
 
 from src.config.settings import Settings
 
 from .models import (
     CreateMessageRequest,
-    DeleteMessageResponse,
     MessageAttachment,
     MessageContent,
-    MessageListResponse,
-    MessageObject,
     ModifyMessageRequest,
 )
 
@@ -27,7 +27,7 @@ def create_message(
     content: Union[str, List[MessageContent]],
     attachments: Optional[List[Dict[str, Any]]] = None,
     metadata: Optional[Dict[str, str]] = None,
-) -> MessageObject:
+) -> Message:
     """
     Create a message.
 
@@ -70,7 +70,7 @@ def create_message(
     response = client.beta.threads.messages.create(thread_id=thread_id, **request_data)
     logger.info(f"Got response from OpenAI: {response}")
 
-    return cast(MessageObject, MessageObject.model_validate(response))
+    return response
 
 
 def list_messages(
@@ -80,7 +80,7 @@ def list_messages(
     after: Optional[str] = None,
     before: Optional[str] = None,
     run_id: Optional[str] = None,
-) -> MessageListResponse:
+) -> SyncCursorPage[Message]:
     """
     List messages for a thread.
 
@@ -93,7 +93,7 @@ def list_messages(
         run_id: Filter for messages from a specific run
 
     Returns:
-        MessageListResponse: The list of messages
+        SyncCursorPage[Message]: The list of messages from OpenAI SDK
     """
     logger.info(f"Listing messages for thread {thread_id}")
 
@@ -108,10 +108,10 @@ def list_messages(
     params = {k: v for k, v in params.items() if v is not None}
 
     response = client.beta.threads.messages.list(thread_id=thread_id, **params)
-    return cast(MessageListResponse, MessageListResponse.model_validate(response))
+    return response
 
 
-def get_message(thread_id: str, message_id: str) -> MessageObject:
+def get_message(thread_id: str, message_id: str) -> Message:
     """
     Get message by ID.
 
@@ -120,21 +120,21 @@ def get_message(thread_id: str, message_id: str) -> MessageObject:
         message_id: (REQUIRED) The ID of the message to retrieve
 
     Returns:
-        MessageObject: The retrieved message
+        Message: The retrieved message from OpenAI SDK
     """
     logger.info(f"Getting message {message_id} from thread {thread_id}")
 
     response = client.beta.threads.messages.retrieve(
         thread_id=thread_id, message_id=message_id
     )
-    return cast(MessageObject, MessageObject.model_validate(response))
+    return response
 
 
 def modify_message(
     thread_id: str,
     message_id: str,
     metadata: Optional[Dict[str, str]] = None,
-) -> MessageObject:
+) -> Message:
     """
     Modify a message.
 
@@ -144,7 +144,7 @@ def modify_message(
         metadata: Key-value pairs (max 16 pairs)
 
     Returns:
-        MessageObject: The modified message
+        Message: The modified message from OpenAI SDK
     """
     logger.info(f"Modifying message {message_id} in thread {thread_id}")
 
@@ -153,10 +153,10 @@ def modify_message(
     response = client.beta.threads.messages.update(
         thread_id=thread_id, message_id=message_id, **request
     )
-    return cast(MessageObject, MessageObject.model_validate(response))
+    return response
 
 
-def delete_message(thread_id: str, message_id: str) -> DeleteMessageResponse:
+def delete_message(thread_id: str, message_id: str) -> MessageDeleted:
     """
     Delete a message.
 
@@ -165,11 +165,11 @@ def delete_message(thread_id: str, message_id: str) -> DeleteMessageResponse:
         message_id: (REQUIRED) The ID of the message to delete
 
     Returns:
-        DeleteMessageResponse: The deletion status
+        MessageDeleted: The deletion status from OpenAI SDK
     """
     logger.info(f"Deleting message {message_id} from thread {thread_id}")
 
     response = client.beta.threads.messages.delete(
         thread_id=thread_id, message_id=message_id
     )
-    return cast(DeleteMessageResponse, DeleteMessageResponse.model_validate(response))
+    return response

@@ -1,20 +1,16 @@
 """OpenAI Thread API tools implementation."""
 import logging
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import Any, Dict, List, Optional, Union
 
 from openai import OpenAI
+from openai.types.beta.thread import Thread
+from openai.types.beta.thread_deleted import ThreadDeleted
 
 from src.config.settings import Settings
 
 from ..messages import MessageAttachment
 from ..models import ToolResources
-from .models import (
-    CreateThreadRequest,
-    DeleteThreadResponse,
-    ModifyThreadRequest,
-    ThreadMessage,
-    ThreadObject,
-)
+from .models import CreateThreadRequest, ModifyThreadRequest, ThreadMessage
 
 logger = logging.getLogger(__name__)
 settings = Settings()
@@ -25,7 +21,7 @@ def create_thread(
     messages: Optional[List[Dict[str, Any]]] = None,
     metadata: Optional[Dict[str, str]] = None,
     tool_resources: Optional[Union[Dict[str, Any], ToolResources]] = None,
-) -> ThreadObject:
+) -> Thread:
     """
     Create a thread.
 
@@ -35,7 +31,7 @@ def create_thread(
         tool_resources: Resources for tools
 
     Returns:
-        ThreadObject: The created thread
+        Thread: The created thread from OpenAI SDK
     """
     logger.info("Creating thread")
 
@@ -78,10 +74,10 @@ def create_thread(
     response = client.beta.threads.create(**request_data)
     logger.info(f"Got response from OpenAI: {response}")
 
-    return cast(ThreadObject, ThreadObject.model_validate(response))
+    return response
 
 
-def get_thread(thread_id: str) -> ThreadObject:
+def get_thread(thread_id: str) -> Thread:
     """
     Get thread by ID.
 
@@ -89,19 +85,19 @@ def get_thread(thread_id: str) -> ThreadObject:
         thread_id: (REQUIRED) The ID of the thread to retrieve
 
     Returns:
-        ThreadObject: The retrieved thread
+        Thread: The retrieved thread from OpenAI SDK
     """
     logger.info(f"Getting thread {thread_id}")
 
     response = client.beta.threads.retrieve(thread_id)
-    return cast(ThreadObject, ThreadObject.model_validate(response))
+    return response
 
 
 def modify_thread(
     thread_id: str,
     metadata: Optional[Dict[str, str]] = None,
     tool_resources: Optional[Union[Dict[str, Any], ToolResources]] = None,
-) -> ThreadObject:
+) -> Thread:
     """
     Modify a thread.
 
@@ -111,7 +107,7 @@ def modify_thread(
         tool_resources: Resources for tools
 
     Returns:
-        ThreadObject: The modified thread
+        Thread: The modified thread from OpenAI SDK
     """
     logger.info(f"Modifying thread {thread_id}")
 
@@ -129,10 +125,10 @@ def modify_thread(
     ).model_dump(exclude_none=True)
 
     response = client.beta.threads.update(thread_id, **request)
-    return cast(ThreadObject, ThreadObject.model_validate(response))
+    return response
 
 
-def delete_thread(thread_id: str) -> DeleteThreadResponse:
+def delete_thread(thread_id: str) -> ThreadDeleted:
     """
     Delete a thread.
 
@@ -140,9 +136,9 @@ def delete_thread(thread_id: str) -> DeleteThreadResponse:
         thread_id: (REQUIRED) The ID of the thread to delete
 
     Returns:
-        DeleteThreadResponse: The deletion status
+        ThreadDeleted: The deletion status from OpenAI SDK
     """
     logger.info(f"Deleting thread {thread_id}")
 
     response = client.beta.threads.delete(thread_id)
-    return cast(DeleteThreadResponse, DeleteThreadResponse.model_validate(response))
+    return response

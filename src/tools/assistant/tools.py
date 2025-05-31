@@ -1,19 +1,16 @@
 """OpenAI Assistant API tools implementation."""
 import logging
-from typing import Dict, List, Literal, Optional, cast
+from typing import Dict, List, Literal, Optional
 
 from openai import OpenAI
+from openai.pagination import SyncCursorPage
+from openai.types.beta.assistant import Assistant
+from openai.types.beta.assistant_deleted import AssistantDeleted
 
 from src.config.settings import Settings
 
 from ..models import ResponseFormat, Tool, ToolResources
-from .models import (
-    AssistantListResponse,
-    AssistantObject,
-    CreateAssistantRequest,
-    DeleteAssistantResponse,
-    ModifyAssistantRequest,
-)
+from .models import CreateAssistantRequest, ModifyAssistantRequest
 
 logger = logging.getLogger(__name__)
 settings = Settings()
@@ -32,7 +29,7 @@ def create_assistant(
     top_p: Optional[float] = None,
     response_format: Optional[ResponseFormat] = None,
     reasoning_effort: Optional[Literal["low", "medium", "high"]] = None,
-) -> AssistantObject:
+) -> Assistant:
     """
     Create an assistant.
 
@@ -50,7 +47,7 @@ def create_assistant(
         reasoning_effort: Reasoning effort level (low/medium/high)
 
     Returns:
-        AssistantObject containing created assistant data
+        Assistant object from OpenAI SDK
     """
     logger.info("Creating assistant")
 
@@ -75,10 +72,10 @@ def create_assistant(
     logger.info(f"Got response from OpenAI: {response}")
     logger.info(f"Response type: {type(response)}")
 
-    return cast(AssistantObject, AssistantObject.model_validate(response))
+    return response
 
 
-def get_assistant(assistant_id: str) -> AssistantObject:
+def get_assistant(assistant_id: str) -> Assistant:
     """
     Get assistant by ID.
 
@@ -86,33 +83,27 @@ def get_assistant(assistant_id: str) -> AssistantObject:
         assistant_id: (REQUIRED) The ID of the assistant to retrieve
 
     Returns:
-        AssistantObject containing assistant data
+        Assistant object from OpenAI SDK
     """
     logger.info(f"Getting assistant {assistant_id}")
 
     response = client.beta.assistants.retrieve(assistant_id)
-    return cast(AssistantObject, AssistantObject.model_validate(response))
+    return response
 
 
-def list_assistants() -> AssistantListResponse:
+def list_assistants() -> SyncCursorPage[Assistant]:
     """
     List assistants.
 
     This is an MCP resource since it takes no arguments.
 
     Returns:
-        AssistantListResponse containing list of assistants
+        SyncCursorPage[Assistant] from OpenAI SDK
     """
     logger.info("Listing assistants")
 
     response = client.beta.assistants.list()
-    return AssistantListResponse(
-        object="list",
-        data=[AssistantObject.model_validate(a) for a in response.data],
-        first_id=response.first_id,
-        last_id=response.last_id,
-        has_more=response.has_more,
-    )
+    return response
 
 
 def modify_assistant(
@@ -128,7 +119,7 @@ def modify_assistant(
     top_p: Optional[float] = None,
     response_format: Optional[ResponseFormat] = None,
     reasoning_effort: Optional[Literal["low", "medium", "high"]] = None,
-) -> AssistantObject:
+) -> Assistant:
     """
     Modify an assistant.
 
@@ -147,7 +138,7 @@ def modify_assistant(
         reasoning_effort: Reasoning effort level (low/medium/high)
 
     Returns:
-        AssistantObject containing modified assistant data
+        Assistant object from OpenAI SDK
     """
     logger.info(f"Modifying assistant {assistant_id}")
 
@@ -166,10 +157,10 @@ def modify_assistant(
     ).model_dump(exclude_none=True)
 
     response = client.beta.assistants.update(assistant_id, **request)
-    return cast(AssistantObject, AssistantObject.model_validate(response))
+    return response
 
 
-def delete_assistant(assistant_id: str) -> DeleteAssistantResponse:
+def delete_assistant(assistant_id: str) -> AssistantDeleted:
     """
     Delete an assistant.
 
@@ -177,13 +168,9 @@ def delete_assistant(assistant_id: str) -> DeleteAssistantResponse:
         assistant_id: (REQUIRED) The ID of the assistant to delete
 
     Returns:
-        DeleteAssistantResponse containing deletion status
+        AssistantDeleted object from OpenAI SDK
     """
     logger.info(f"Deleting assistant {assistant_id}")
 
     response = client.beta.assistants.delete(assistant_id)
-    return DeleteAssistantResponse(
-        id=response.id,
-        object="assistant.deleted",
-        deleted=response.deleted,
-    )
+    return response

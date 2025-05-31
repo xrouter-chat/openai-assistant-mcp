@@ -1,13 +1,13 @@
 """OpenAI Run Steps API tools implementation."""
 import logging
-from typing import List, Literal, Optional, cast
+from typing import List, Literal, Optional
 
 from openai import NOT_GIVEN, OpenAI
+from openai.pagination import SyncCursorPage
 from openai.types.beta.threads.runs import RunStepInclude
+from openai.types.beta.threads.runs.run_step import RunStep
 
 from src.config.settings import Settings
-
-from .models import RunStepListResponse, RunStepObject
 
 logger = logging.getLogger(__name__)
 settings = Settings()
@@ -22,7 +22,7 @@ def list_run_steps(
     after: Optional[str] = None,
     before: Optional[str] = None,
     include: Optional[List[RunStepInclude]] = None,
-) -> RunStepListResponse:
+) -> SyncCursorPage[RunStep]:
     """
     List run steps for a run.
 
@@ -38,7 +38,7 @@ def list_run_steps(
                 'step_details.tool_calls[*].file_search.results[*].content'
 
     Returns:
-        RunStepListResponse: The list of run steps
+        SyncCursorPage[RunStep]: The list of run steps from OpenAI SDK
     """
     logger.info(f"Listing run steps for run {run_id} in thread {thread_id}")
 
@@ -53,7 +53,7 @@ def list_run_steps(
     )
     logger.info(f"Got response from OpenAI: {response}")
 
-    return cast(RunStepListResponse, RunStepListResponse.model_validate(response))
+    return response
 
 
 def get_run_step(
@@ -61,7 +61,7 @@ def get_run_step(
     run_id: str,
     step_id: str,
     include: Optional[List[RunStepInclude]] = None,
-) -> RunStepObject:
+) -> RunStep:
     """
     Get run step by ID.
 
@@ -74,7 +74,7 @@ def get_run_step(
                 'step_details.tool_calls[*].file_search.results[*].content'
 
     Returns:
-        RunStepObject: The retrieved run step
+        RunStep: The retrieved run step from OpenAI SDK
     """
     logger.info(f"Getting run step {step_id} from run {run_id} in thread {thread_id}")
 
@@ -86,4 +86,4 @@ def get_run_step(
     )
     logger.info(f"Got response from OpenAI: {response}")
 
-    return cast(RunStepObject, RunStepObject.model_validate(response))
+    return response
