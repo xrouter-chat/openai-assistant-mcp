@@ -1,173 +1,137 @@
-# OpenAI Assistant MCP Project
+# OpenAI Assistant MCP Server
 
-This project provides MCP (Model Context Protocol) servers for working with OpenAI's Assistant API. The implementation allows seamless integration of OpenAI Assistant capabilities into MCP-compatible applications.
+MCP server for OpenAI Assistant API. Provides tools for managing assistants, threads, messages, and runs.
 
-## Overview
+## Installation
 
-The OpenAI Assistant API enables the creation and management of AI assistants with various capabilities including:
-- Creating and managing assistants with specific instructions and tools
-- Managing conversation threads
-- Handling messages and runs
-- Supporting streaming responses
-- Function calling and tool integration
-
-This project wraps these capabilities in MCP servers, making them easily accessible through the Model Context Protocol.
-
-## Running the Server
-
-### Prerequisites
-
-1. Make sure you have Python 3.11 or higher installed
-2. Install the project dependencies:
 ```bash
+# Clone the repository
+git clone <repo-url>
+cd openai-assistant-mcp
+
+# Install dependencies
 uv pip install -e .
 ```
 
-### Starting the Server
+## Configuration
 
-1. Navigate to the project root directory where your `src` folder is located.
-
-2. Set the PYTHONPATH and run the MCP development server:
+Set your OpenAI API key:
 ```bash
-PYTHONPATH=. mcp dev src/server.py
+export OPENAI_API_KEY=your_api_key_here
 ```
 
-This command does several things:
-- `PYTHONPATH=.` - Sets the Python path to include your project root
-- `mcp dev` - Runs the MCP server in development mode with the inspector interface
-- `src/server.py` - The path to your MCP server implementation
-
-### Environment Variables
-
-Required environment variables:
-- `PYTHONPATH` - Set to the project root directory (use `.` when you're in the project directory)
-- `OPENAI_API_KEY` - Your OpenAI API key (required)
-
-Optional environment variables:
-- `ENVIRONMENT` - Server environment (default: "development")
-- `HOST` - Host to bind the server to (default: "0.0.0.0")
-- `PORT` - Port to bind the server to (default: 8001)
-- `BACKEND_CORS_ORIGINS` - List of allowed CORS origins
-
-You can set them all at once using a .env file or export them in your shell:
-```bash
-PYTHONPATH=. OPENAI_API_KEY=your_key mcp dev src/server.py
+Or create a `.env` file:
+```
+OPENAI_API_KEY=your_api_key_here
 ```
 
-## Server Documentation
+## Running the Server
 
-For detailed documentation about the server's tools and capabilities, including how to use them in agent development, see [Server Documentation](docs/server.md). The documentation includes:
+### Option 1: Direct Python execution
+```bash
+uv run mcp run run_server.py
+```
 
-- Complete API reference for all available tools
-- Input/output schemas for each tool
-- Error handling information
-- Examples of using tools in agent development
+### Option 2: MCP Dev Mode (for development)
+```bash
+uv run mcp dev run_server.py
+```
 
-### Example: Creating an Assistant Agent
+### Option 3: MCPO with FastAPI UI (recommended)
+Due to a bug in the official mcpo release, use the fixed fork:
+```bash
+uvx --from git+https://github.com/bmen25124/mcpo.git@fix_schema_defs_not_found mcpo --port 8602 -- uv run mcp run run_server.py
+```
 
-Here's a basic example of how to use the server's tools to create an assistant and start a conversation:
+After starting, access the FastAPI UI at: http://localhost:8602/docs
+
+## Available Tools
+
+### Assistant Management
+- `create_assistant` - Create a new assistant
+- `get_assistant` - Retrieve assistant by ID
+- `list_assistants` - List all assistants
+- `modify_assistant` - Update assistant configuration
+- `delete_assistant` - Delete an assistant
+
+### Thread Management
+- `create_thread` - Create a conversation thread
+- `get_thread` - Retrieve thread by ID
+- `modify_thread` - Update thread metadata
+- `delete_thread` - Delete a thread
+
+### Message Management
+- `create_message` - Add message to thread
+- `get_message` - Retrieve message by ID
+- `list_messages` - List thread messages
+- `modify_message` - Update message metadata
+- `delete_message` - Delete a message
+
+### Run Management
+- `create_run` - Start assistant execution
+- `create_thread_and_run` - Create thread and run in one call
+- `list_runs` - List thread runs
+- `get_run` - Retrieve run by ID
+- `modify_run` - Update run metadata
+- `submit_tool_outputs` - Submit tool call results
+- `cancel_run` - Cancel active run
+
+### Run Steps
+- `list_run_steps` - List steps for a run
+- `get_run_step` - Retrieve specific step
+
+## Example Usage
 
 ```python
-# 1. Create an assistant
-assistant = use_mcp_tool("create_assistant", {
+# Create an assistant
+assistant = await create_assistant({
     "model": "gpt-4-turbo-preview",
-    "name": "Math Tutor",
-    "instructions": "You are a helpful math tutor..."
+    "name": "Code Helper",
+    "instructions": "You are a helpful coding assistant."
 })
 
-# 2. Create a thread
-thread = use_mcp_tool("create_thread")
+# Create a thread
+thread = await create_thread()
 
-# 3. Add a message to the thread
-message = use_mcp_tool("create_message", {
+# Add a message
+message = await create_message({
     "thread_id": thread["id"],
     "role": "user",
-    "content": "Can you help me solve this equation: 2x + 5 = 13?"
+    "content": "Help me write a Python function"
 })
 
-# 4. Run the assistant
-run = use_mcp_tool("create_run", {
+# Run the assistant
+run = await create_run({
     "thread_id": thread["id"],
     "assistant_id": assistant["id"]
-})
-
-# 5. Check run status and get response
-run_status = use_mcp_tool("retrieve_run", {
-    "thread_id": thread["id"],
-    "run_id": run["id"]
-})
-
-messages = use_mcp_tool("list_messages", {
-    "thread_id": thread["id"],
-    "order": "desc",
-    "limit": 1
 })
 ```
 
 ## Project Structure
 
 ```
-.
-├── docs/
-│   ├── server.md              # Detailed server documentation
-│   └── openai-assistant/      # OpenAI Assistant API documentation
 ├── src/
-│   ├── config/               # Server configuration
-│   ├── tools/                # MCP tools implementation
-│   │   ├── assistant/        # Assistant management tools
-│   │   ├── messages/         # Message handling tools
-│   │   ├── runs/            # Run management tools
-│   │   ├── run_steps/       # Run steps tools
-│   │   └── threads/         # Thread management tools
-│   └── server.py            # MCP server implementation
-├── tests/                    # Test suite
-├── .gitignore
-├── .pre-commit-config.yaml
-├── pyproject.toml
-└── README.md
+│   ├── server.py              # MCP server entry point
+│   ├── config/                # Configuration
+│   └── tools/                 # Tool implementations
+│       ├── assistant/         # Assistant tools
+│       ├── threads/           # Thread tools
+│       ├── messages/          # Message tools
+│       ├── runs/              # Run tools
+│       └── run_steps/         # Run step tools
+├── tests/                     # Test suite
+├── docs/                      # Documentation
+└── pyproject.toml            # Project configuration
 ```
 
-## Features
+## Troubleshooting
 
-The OpenAI Assistant MCP server provides:
+### MCPO Schema Error
+If you encounter `TypeError: argument of type 'NoneType' is not iterable`, you're using the broken official mcpo release. Use the fixed fork command shown above.
 
-- Assistant Management (create, list, retrieve, modify, delete)
-- Thread Management (create, retrieve, modify, delete)
-- Message Management (create, list, retrieve, modify)
-- Run Management (create, list, retrieve, modify, cancel)
-- Run Steps (list, retrieve)
-- Streaming Support
-- Tool Integration
-
-## Dependencies
-
-- `openai>=1.18.0` - Official OpenAI Python client library with Assistants API support
-- `mcp` - Model Context Protocol framework
-- `pydantic` - Data validation
-- `fastapi` - API framework
-
-## Configuration
-
-The server uses environment variables for configuration (see Environment Variables section above).
-
-## Error Handling
-
-The servers use standard HTTP error codes and provide detailed error messages:
-
-- 400: Bad Request - Invalid parameters
-- 401: Unauthorized - Invalid API key
-- 404: Not Found - Resource not found
-- 429: Too Many Requests - Rate limit exceeded
-- 500: Internal Server Error - Server error
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+### API Key Issues
+Ensure your OpenAI API key has access to the Assistants API beta.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+MIT

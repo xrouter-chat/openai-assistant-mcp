@@ -1,0 +1,2930 @@
+{
+  "tools": [
+    {
+      "name": "create_assistant",
+      "description": "\nCreate an assistant.\n\nThis is typically the first step in the workflow before creating threads\nand messages.\n\nArgs:\n    model: (REQUIRED) ID of the model to use\n    name: Name of the assistant (max 256 chars)\n    description: Description of the assistant (max 512 chars)\n    instructions: System instructions (max 256k chars)\n    tools: List of tools (max 128 tools)\n    tool_resources: Resources for tools\n    metadata: Key-value pairs (max 16 pairs)\n    temperature: Sampling temperature (0-2)\n    top_p: Nucleus sampling parameter (0-1)\n    response_format: Output format specification\n    reasoning_effort: Reasoning effort level (low/medium/high)\n\nReturns:\n    AssistantObject: The created assistant containing:\n    - id: The unique identifier for the assistant\n    - object: Always \"assistant\"\n    - created_at: Unix timestamp when the assistant was created\n    - model: ID of the model being used\n    - name: The assistant's name (max 256 chars)\n    - description: The assistant's description (max 512 chars)\n    - instructions: System instructions for the assistant (max 256k chars)\n    - tools: List of enabled tools (max 128 tools)\n    - tool_resources: Resources used by the assistant's tools\n    - metadata: Key-value pairs attached to the object\n    - temperature: Sampling temperature (0-2)\n    - top_p: Nucleus sampling parameter (0-1)\n    - response_format: Output format specification\n",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Description"
+          },
+          "instructions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Instructions"
+          },
+          "tools": {
+            "anyOf": [
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/CodeInterpreterTool"
+                    },
+                    {
+                      "$ref": "#/$defs/AssistantFileSearchTool"
+                    },
+                    {
+                      "$ref": "#/$defs/FunctionTool"
+                    }
+                  ]
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Tools"
+          },
+          "tool_resources": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/ToolResources"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Metadata"
+          },
+          "temperature": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Temperature"
+          },
+          "top_p": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Top P"
+          },
+          "response_format": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/ResponseFormat"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "reasoning_effort": {
+            "anyOf": [
+              {
+                "enum": [
+                  "low",
+                  "medium",
+                  "high"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Reasoning Effort"
+          }
+        },
+        "$defs": {
+          "AssistantFileSearchTool": {
+            "description": "Tool for searching through files with assistant-specific configuration.",
+            "properties": {
+              "type": {
+                "const": "file_search",
+                "description": "The type of tool being defined: file_search",
+                "title": "Type",
+                "type": "string"
+              },
+              "file_search": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/FileSearchConfig"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Overrides for the file search tool."
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "title": "AssistantFileSearchTool",
+            "type": "object"
+          },
+          "CodeInterpreterResource": {
+            "description": "Resources for code interpreter tool.",
+            "properties": {
+              "file_ids": {
+                "description": "A list of file IDs made available to the code_interpreter tool.",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 20,
+                "title": "File Ids",
+                "type": "array"
+              }
+            },
+            "title": "CodeInterpreterResource",
+            "type": "object"
+          },
+          "CodeInterpreterTool": {
+            "description": "Tool for executing code in a sandboxed environment.",
+            "properties": {
+              "type": {
+                "const": "code_interpreter",
+                "description": "The type of tool being defined: code_interpreter",
+                "title": "Type",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "title": "CodeInterpreterTool",
+            "type": "object"
+          },
+          "FileSearchConfig": {
+            "description": "Configuration for file search tool.",
+            "properties": {
+              "max_num_results": {
+                "anyOf": [
+                  {
+                    "maximum": 50,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "The maximum number of results the file search tool should output.",
+                "title": "Max Num Results"
+              },
+              "ranking_options": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/RankingOptions"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "The ranking options for the file search."
+              }
+            },
+            "title": "FileSearchConfig",
+            "type": "object"
+          },
+          "FileSearchResource": {
+            "description": "Resources for file search tool.",
+            "properties": {
+              "vector_store_ids": {
+                "description": "The vector store attached to this assistant.",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 1,
+                "title": "Vector Store Ids",
+                "type": "array"
+              }
+            },
+            "title": "FileSearchResource",
+            "type": "object"
+          },
+          "FunctionParameters": {
+            "description": "Parameters for a function tool.",
+            "properties": {
+              "name": {
+                "description": "The name of the function to be called.",
+                "maxLength": 64,
+                "pattern": "^[a-zA-Z0-9_-]+$",
+                "title": "Name",
+                "type": "string"
+              },
+              "description": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "A description of what the function does.",
+                "title": "Description"
+              },
+              "parameters": {
+                "anyOf": [
+                  {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "The parameters the functions accepts, described as a JSON Schema object.",
+                "title": "Parameters"
+              },
+              "strict": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Whether to enable strict schema adherence when generating the function call.",
+                "title": "Strict"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "title": "FunctionParameters",
+            "type": "object"
+          },
+          "FunctionTool": {
+            "description": "Tool for calling functions.",
+            "properties": {
+              "type": {
+                "const": "function",
+                "description": "The type of tool being defined: function",
+                "title": "Type",
+                "type": "string"
+              },
+              "function": {
+                "$ref": "#/$defs/FunctionParameters",
+                "description": "The function definition."
+              }
+            },
+            "required": [
+              "type",
+              "function"
+            ],
+            "title": "FunctionTool",
+            "type": "object"
+          },
+          "RankingOptions": {
+            "description": "Options for ranking file search results.",
+            "properties": {
+              "score_threshold": {
+                "description": "The score threshold for the file search. All values must be a floating point number between 0 and 1.",
+                "maximum": 1,
+                "minimum": 0,
+                "title": "Score Threshold",
+                "type": "number"
+              },
+              "ranker": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "The ranker to use for the file search. If not specified will use the auto ranker.",
+                "title": "Ranker"
+              }
+            },
+            "required": [
+              "score_threshold"
+            ],
+            "title": "RankingOptions",
+            "type": "object"
+          },
+          "ResponseFormat": {
+            "description": "Unified response format model for OpenAI API.\n\nThis model handles all response format types: auto, text, json_object, and json_schema.\nWhen type is 'json_schema', the json_schema field must be provided with the schema configuration.",
+            "properties": {
+              "type": {
+                "default": "auto",
+                "description": "The type of response format. Can be 'auto', 'text', 'json_object', or 'json_schema'.",
+                "enum": [
+                  "auto",
+                  "text",
+                  "json_object",
+                  "json_schema"
+                ],
+                "title": "Type",
+                "type": "string"
+              },
+              "json_schema": {
+                "anyOf": [
+                  {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "JSON schema configuration when type is 'json_schema'. Must include 'name', 'schema', and optionally 'description' and 'strict'.",
+                "title": "Json Schema"
+              }
+            },
+            "title": "ResponseFormat",
+            "type": "object"
+          },
+          "ToolResources": {
+            "description": "Resources available to assistant tools.",
+            "properties": {
+              "code_interpreter": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/CodeInterpreterResource"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Resources for the code interpreter tool."
+              },
+              "file_search": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/FileSearchResource"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Resources for the file search tool."
+              }
+            },
+            "title": "ToolResources",
+            "type": "object"
+          }
+        },
+        "required": [
+          "model"
+        ],
+        "title": "create_assistantArguments"
+      }
+    },
+    {
+      "name": "get_assistant",
+      "description": "\nGet assistant by ID.\n\nUse this to retrieve an assistant's configuration after creation.\n\nArgs:\n    assistant_id: (REQUIRED) The ID of the assistant to retrieve\n\nReturns:\n    AssistantObject: The assistant containing:\n    - id: The unique identifier for the assistant\n    - object: Always \"assistant\"\n    - created_at: Unix timestamp when the assistant was created\n    - model: ID of the model being used\n    - name: The assistant's name (max 256 chars)\n    - description: The assistant's description (max 512 chars)\n    - instructions: System instructions for the assistant (max 256k chars)\n    - tools: List of enabled tools (max 128 tools)\n    - tool_resources: Resources used by the assistant's tools\n    - metadata: Key-value pairs attached to the object\n    - temperature: Sampling temperature (0-2)\n    - top_p: Nucleus sampling parameter (0-1)\n    - response_format: Output format specification\n",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "assistant_id": {
+            "title": "Assistant Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "assistant_id"
+        ],
+        "title": "get_assistantArguments"
+      }
+    },
+    {
+      "name": "list_assistants",
+      "description": "List assistants. Use this to view all available assistants.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "title": "list_assistantsArguments"
+      }
+    },
+    {
+      "name": "modify_assistant",
+      "description": "\nModify an assistant.\n\nUse this to update an assistant's configuration after creation.\n\nArgs:\n    assistant_id: (REQUIRED) The ID of the assistant to modify\n    model: ID of the model to use\n    name: Name of the assistant (max 256 chars)\n    description: Description of the assistant (max 512 chars)\n    instructions: System instructions (max 256k chars)\n    tools: List of tools (max 128 tools)\n    tool_resources: Resources for tools\n    metadata: Key-value pairs (max 16 pairs)\n    temperature: Sampling temperature (0-2)\n    top_p: Nucleus sampling parameter (0-1)\n    response_format: Output format specification\n    reasoning_effort: Reasoning effort level (low/medium/high)\n\nReturns:\n    AssistantObject: The assistant containing:\n    - id: The unique identifier for the assistant\n    - object: Always \"assistant\"\n    - created_at: Unix timestamp when the assistant was created\n    - model: ID of the model being used\n    - name: The assistant's name (max 256 chars)\n    - description: The assistant's description (max 512 chars)\n    - instructions: System instructions for the assistant (max 256k chars)\n    - tools: List of enabled tools (max 128 tools)\n    - tool_resources: Resources used by the assistant's tools\n    - metadata: Key-value pairs attached to the object\n    - temperature: Sampling temperature (0-2)\n    - top_p: Nucleus sampling parameter (0-1)\n    - response_format: Output format specification\n",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "assistant_id": {
+            "title": "Assistant Id",
+            "type": "string"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Model"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Description"
+          },
+          "instructions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Instructions"
+          },
+          "tools": {
+            "anyOf": [
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/CodeInterpreterTool"
+                    },
+                    {
+                      "$ref": "#/$defs/AssistantFileSearchTool"
+                    },
+                    {
+                      "$ref": "#/$defs/FunctionTool"
+                    }
+                  ]
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Tools"
+          },
+          "tool_resources": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/ToolResources"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Metadata"
+          },
+          "temperature": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Temperature"
+          },
+          "top_p": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Top P"
+          },
+          "response_format": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/ResponseFormat"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "reasoning_effort": {
+            "anyOf": [
+              {
+                "enum": [
+                  "low",
+                  "medium",
+                  "high"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Reasoning Effort"
+          }
+        },
+        "$defs": {
+          "AssistantFileSearchTool": {
+            "description": "Tool for searching through files with assistant-specific configuration.",
+            "properties": {
+              "type": {
+                "const": "file_search",
+                "description": "The type of tool being defined: file_search",
+                "title": "Type",
+                "type": "string"
+              },
+              "file_search": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/FileSearchConfig"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Overrides for the file search tool."
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "title": "AssistantFileSearchTool",
+            "type": "object"
+          },
+          "CodeInterpreterResource": {
+            "description": "Resources for code interpreter tool.",
+            "properties": {
+              "file_ids": {
+                "description": "A list of file IDs made available to the code_interpreter tool.",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 20,
+                "title": "File Ids",
+                "type": "array"
+              }
+            },
+            "title": "CodeInterpreterResource",
+            "type": "object"
+          },
+          "CodeInterpreterTool": {
+            "description": "Tool for executing code in a sandboxed environment.",
+            "properties": {
+              "type": {
+                "const": "code_interpreter",
+                "description": "The type of tool being defined: code_interpreter",
+                "title": "Type",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "title": "CodeInterpreterTool",
+            "type": "object"
+          },
+          "FileSearchConfig": {
+            "description": "Configuration for file search tool.",
+            "properties": {
+              "max_num_results": {
+                "anyOf": [
+                  {
+                    "maximum": 50,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "The maximum number of results the file search tool should output.",
+                "title": "Max Num Results"
+              },
+              "ranking_options": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/RankingOptions"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "The ranking options for the file search."
+              }
+            },
+            "title": "FileSearchConfig",
+            "type": "object"
+          },
+          "FileSearchResource": {
+            "description": "Resources for file search tool.",
+            "properties": {
+              "vector_store_ids": {
+                "description": "The vector store attached to this assistant.",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 1,
+                "title": "Vector Store Ids",
+                "type": "array"
+              }
+            },
+            "title": "FileSearchResource",
+            "type": "object"
+          },
+          "FunctionParameters": {
+            "description": "Parameters for a function tool.",
+            "properties": {
+              "name": {
+                "description": "The name of the function to be called.",
+                "maxLength": 64,
+                "pattern": "^[a-zA-Z0-9_-]+$",
+                "title": "Name",
+                "type": "string"
+              },
+              "description": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "A description of what the function does.",
+                "title": "Description"
+              },
+              "parameters": {
+                "anyOf": [
+                  {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "The parameters the functions accepts, described as a JSON Schema object.",
+                "title": "Parameters"
+              },
+              "strict": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Whether to enable strict schema adherence when generating the function call.",
+                "title": "Strict"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "title": "FunctionParameters",
+            "type": "object"
+          },
+          "FunctionTool": {
+            "description": "Tool for calling functions.",
+            "properties": {
+              "type": {
+                "const": "function",
+                "description": "The type of tool being defined: function",
+                "title": "Type",
+                "type": "string"
+              },
+              "function": {
+                "$ref": "#/$defs/FunctionParameters",
+                "description": "The function definition."
+              }
+            },
+            "required": [
+              "type",
+              "function"
+            ],
+            "title": "FunctionTool",
+            "type": "object"
+          },
+          "RankingOptions": {
+            "description": "Options for ranking file search results.",
+            "properties": {
+              "score_threshold": {
+                "description": "The score threshold for the file search. All values must be a floating point number between 0 and 1.",
+                "maximum": 1,
+                "minimum": 0,
+                "title": "Score Threshold",
+                "type": "number"
+              },
+              "ranker": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "The ranker to use for the file search. If not specified will use the auto ranker.",
+                "title": "Ranker"
+              }
+            },
+            "required": [
+              "score_threshold"
+            ],
+            "title": "RankingOptions",
+            "type": "object"
+          },
+          "ResponseFormat": {
+            "description": "Unified response format model for OpenAI API.\n\nThis model handles all response format types: auto, text, json_object, and json_schema.\nWhen type is 'json_schema', the json_schema field must be provided with the schema configuration.",
+            "properties": {
+              "type": {
+                "default": "auto",
+                "description": "The type of response format. Can be 'auto', 'text', 'json_object', or 'json_schema'.",
+                "enum": [
+                  "auto",
+                  "text",
+                  "json_object",
+                  "json_schema"
+                ],
+                "title": "Type",
+                "type": "string"
+              },
+              "json_schema": {
+                "anyOf": [
+                  {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "JSON schema configuration when type is 'json_schema'. Must include 'name', 'schema', and optionally 'description' and 'strict'.",
+                "title": "Json Schema"
+              }
+            },
+            "title": "ResponseFormat",
+            "type": "object"
+          },
+          "ToolResources": {
+            "description": "Resources available to assistant tools.",
+            "properties": {
+              "code_interpreter": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/CodeInterpreterResource"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Resources for the code interpreter tool."
+              },
+              "file_search": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/FileSearchResource"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Resources for the file search tool."
+              }
+            },
+            "title": "ToolResources",
+            "type": "object"
+          }
+        },
+        "required": [
+          "assistant_id"
+        ],
+        "title": "modify_assistantArguments"
+      }
+    },
+    {
+      "name": "delete_assistant",
+      "description": "\nDelete an assistant.\n\nPermanently removes an assistant and its configuration.\n\nArgs:\n    assistant_id: (REQUIRED) The ID of the assistant to delete\n\nReturns:\n    DeleteAssistantResponse: The deletion confirmation containing:\n    - id: The ID of the deleted assistant\n    - object: Always \"assistant.deleted\"\n    - deleted: Boolean indicating whether the assistant was successfully deleted\n",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "assistant_id": {
+            "title": "Assistant Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "assistant_id"
+        ],
+        "title": "delete_assistantArguments"
+      }
+    },
+    {
+      "name": "create_thread",
+      "description": "\nCreate a thread.\n\nThis is done after creating an assistant and before adding messages.\nA thread maintains the conversation state between the assistant and user.\n\nArgs:\n    messages: List of messages to start the thread with\n    metadata: Key-value pairs (max 16 pairs)\n    tool_resources: Resources for tools\n\nReturns:\n    ThreadObject: The created thread containing:\n    - id: The unique identifier for the thread\n    - object: Always \"thread\"\n    - created_at: Unix timestamp when the thread was created\n    - metadata: Key-value pairs attached to the thread\n    - tool_resources: Resources made available to assistant's tools in this thread\n",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "messages": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Messages"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Metadata"
+          },
+          "tool_resources": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "$ref": "#/$defs/ToolResources"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Tool Resources"
+          }
+        },
+        "$defs": {
+          "CodeInterpreterResource": {
+            "description": "Resources for code interpreter tool.",
+            "properties": {
+              "file_ids": {
+                "description": "A list of file IDs made available to the code_interpreter tool.",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 20,
+                "title": "File Ids",
+                "type": "array"
+              }
+            },
+            "title": "CodeInterpreterResource",
+            "type": "object"
+          },
+          "FileSearchResource": {
+            "description": "Resources for file search tool.",
+            "properties": {
+              "vector_store_ids": {
+                "description": "The vector store attached to this assistant.",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 1,
+                "title": "Vector Store Ids",
+                "type": "array"
+              }
+            },
+            "title": "FileSearchResource",
+            "type": "object"
+          },
+          "ToolResources": {
+            "description": "Resources available to assistant tools.",
+            "properties": {
+              "code_interpreter": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/CodeInterpreterResource"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Resources for the code interpreter tool."
+              },
+              "file_search": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/FileSearchResource"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Resources for the file search tool."
+              }
+            },
+            "title": "ToolResources",
+            "type": "object"
+          }
+        },
+        "title": "create_threadArguments"
+      }
+    },
+    {
+      "name": "get_thread",
+      "description": "\nGet thread by ID.\n\nUse this to retrieve a thread's details after creation.\n\nArgs:\n    thread_id: (REQUIRED) The ID of the thread to retrieve\n\nReturns:\n    ThreadObject: The thread containing:\n    - id: The unique identifier for the thread\n    - object: Always \"thread\"\n    - created_at: Unix timestamp when the thread was created\n    - metadata: Key-value pairs attached to the thread\n    - tool_resources: Resources made available to assistant's tools in this thread\n",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "thread_id": {
+            "title": "Thread Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "thread_id"
+        ],
+        "title": "get_threadArguments"
+      }
+    },
+    {
+      "name": "modify_thread",
+      "description": "\nModify a thread.\n\nUse this to update a thread's metadata or tool resources.\n\nArgs:\n    thread_id: (REQUIRED) The ID of the thread to modify\n    metadata: Key-value pairs (max 16 pairs)\n    tool_resources: Resources for tools\n\nReturns:\n    ThreadObject: The modified thread containing:\n    - id: The unique identifier for the thread\n    - object: Always \"thread\"\n    - created_at: Unix timestamp when the thread was created\n    - metadata: Key-value pairs attached to the thread\n    - tool_resources: Resources made available to assistant's tools in this thread\n",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "thread_id": {
+            "title": "Thread Id",
+            "type": "string"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Metadata"
+          },
+          "tool_resources": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "$ref": "#/$defs/ToolResources"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Tool Resources"
+          }
+        },
+        "$defs": {
+          "CodeInterpreterResource": {
+            "description": "Resources for code interpreter tool.",
+            "properties": {
+              "file_ids": {
+                "description": "A list of file IDs made available to the code_interpreter tool.",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 20,
+                "title": "File Ids",
+                "type": "array"
+              }
+            },
+            "title": "CodeInterpreterResource",
+            "type": "object"
+          },
+          "FileSearchResource": {
+            "description": "Resources for file search tool.",
+            "properties": {
+              "vector_store_ids": {
+                "description": "The vector store attached to this assistant.",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 1,
+                "title": "Vector Store Ids",
+                "type": "array"
+              }
+            },
+            "title": "FileSearchResource",
+            "type": "object"
+          },
+          "ToolResources": {
+            "description": "Resources available to assistant tools.",
+            "properties": {
+              "code_interpreter": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/CodeInterpreterResource"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Resources for the code interpreter tool."
+              },
+              "file_search": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/FileSearchResource"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Resources for the file search tool."
+              }
+            },
+            "title": "ToolResources",
+            "type": "object"
+          }
+        },
+        "required": [
+          "thread_id"
+        ],
+        "title": "modify_threadArguments"
+      }
+    },
+    {
+      "name": "delete_thread",
+      "description": "\nDelete a thread.\n\nPermanently removes a thread and all its messages.\n\nArgs:\n    thread_id: (REQUIRED) The ID of the thread to delete\n\nReturns:\n    DeleteThreadResponse: The deletion confirmation containing:\n    - id: The ID of the deleted thread\n    - object: Always \"thread.deleted\"\n    - deleted: Boolean indicating whether the thread was successfully deleted\n",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "thread_id": {
+            "title": "Thread Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "thread_id"
+        ],
+        "title": "delete_threadArguments"
+      }
+    },
+    {
+      "name": "create_message",
+      "description": "\nCreate a message in a thread.\n\nMessages are added to threads to build conversations.\nUser messages are added when the user sends input, assistant messages\nwhen the assistant responds.\n\nArgs:\n    thread_id: (REQUIRED) The ID of the thread to create a message for\n    role: (REQUIRED) The role of the entity creating the message\n        ('user' or 'assistant')\n    content: (REQUIRED) The content of the message (string or list of content parts)\n    attachments: List of file attachments\n    metadata: Key-value pairs (max 16 pairs)\n\nReturns:\n    MessageObject: The created message containing:\n    - id: The unique identifier for the message\n    - object: Always \"thread.message\"\n    - created_at: Unix timestamp when the message was created\n    - thread_id: The ID of the thread this message belongs to\n    - role: The role of the entity that created the message (user/assistant)\n    - content: Array of message content (text, images, etc.)\n    - assistant_id: ID of the assistant that authored this message (if applicable)\n    - run_id: ID of the run associated with the message (if applicable)\n    - completed_at: Unix timestamp when the message was completed\n    - incomplete_at: Unix timestamp when the message was marked incomplete\n    - incomplete_details: Details about why the message is incomplete\n    - status: Message status (in_progress/incomplete/completed)\n    - attachments: Files attached to the message\n    - metadata: Key-value pairs attached to the message\n",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "thread_id": {
+            "title": "Thread Id",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "user",
+              "assistant"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/MessageText"
+                    },
+                    {
+                      "$ref": "#/$defs/MessageImageFile"
+                    },
+                    {
+                      "$ref": "#/$defs/MessageImageUrl"
+                    },
+                    {
+                      "$ref": "#/$defs/MessageRefusal"
+                    }
+                  ]
+                },
+                "type": "array"
+              }
+            ],
+            "title": "Content"
+          },
+          "attachments": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Attachments"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Metadata"
+          }
+        },
+        "$defs": {
+          "FileCitationAnnotation": {
+            "description": "Model for file citation annotations.",
+            "properties": {
+              "type": {
+                "const": "file_citation",
+                "description": "The type of annotation. Always file_citation",
+                "title": "Type",
+                "type": "string"
+              },
+              "text": {
+                "description": "The text in the message content that needs to be replaced",
+                "title": "Text",
+                "type": "string"
+              },
+              "file_citation": {
+                "$ref": "#/$defs/FileCitationDetail"
+              },
+              "start_index": {
+                "description": "Start index of the annotation",
+                "title": "Start Index",
+                "type": "integer"
+              },
+              "end_index": {
+                "description": "End index of the annotation",
+                "title": "End Index",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "type",
+              "text",
+              "file_citation",
+              "start_index",
+              "end_index"
+            ],
+            "title": "FileCitationAnnotation",
+            "type": "object"
+          },
+          "FileCitationDetail": {
+            "description": "Model for file citation details.",
+            "properties": {
+              "file_id": {
+                "description": "The ID of the specific File the citation is from",
+                "title": "File Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "file_id"
+            ],
+            "title": "FileCitationDetail",
+            "type": "object"
+          },
+          "FilePathAnnotation": {
+            "description": "Model for file path annotations.",
+            "properties": {
+              "type": {
+                "const": "file_path",
+                "description": "The type of annotation. Always file_path",
+                "title": "Type",
+                "type": "string"
+              },
+              "text": {
+                "description": "The text in the message content that needs to be replaced",
+                "title": "Text",
+                "type": "string"
+              },
+              "file_path": {
+                "$ref": "#/$defs/FilePathDetail"
+              },
+              "start_index": {
+                "description": "Start index of the annotation",
+                "title": "Start Index",
+                "type": "integer"
+              },
+              "end_index": {
+                "description": "End index of the annotation",
+                "title": "End Index",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "type",
+              "text",
+              "file_path",
+              "start_index",
+              "end_index"
+            ],
+            "title": "FilePathAnnotation",
+            "type": "object"
+          },
+          "FilePathDetail": {
+            "description": "Model for file path details.",
+            "properties": {
+              "file_id": {
+                "description": "The ID of the file that was generated",
+                "title": "File Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "file_id"
+            ],
+            "title": "FilePathDetail",
+            "type": "object"
+          },
+          "ImageFileContent": {
+            "description": "Model for image file content.",
+            "properties": {
+              "file_id": {
+                "description": "The File ID of the image in the message content. Set purpose='vision' when uploading the File",
+                "title": "File Id",
+                "type": "string"
+              },
+              "detail": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "auto",
+                      "low",
+                      "high"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": "auto",
+                "description": "Specifies the detail level of the image. low uses fewer tokens",
+                "title": "Detail"
+              }
+            },
+            "required": [
+              "file_id"
+            ],
+            "title": "ImageFileContent",
+            "type": "object"
+          },
+          "ImageUrlContent": {
+            "description": "Model for image URL content.",
+            "properties": {
+              "url": {
+                "description": "The external URL of the image, must be supported types: jpeg, jpg, png, gif, webp",
+                "title": "Url",
+                "type": "string"
+              },
+              "detail": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "auto",
+                      "low",
+                      "high"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": "auto",
+                "description": "Specifies the detail level of the image. low uses fewer tokens",
+                "title": "Detail"
+              }
+            },
+            "required": [
+              "url"
+            ],
+            "title": "ImageUrlContent",
+            "type": "object"
+          },
+          "MessageImageFile": {
+            "description": "Model for image file message content.",
+            "properties": {
+              "type": {
+                "const": "image_file",
+                "description": "The type of content part. Always image_file",
+                "title": "Type",
+                "type": "string"
+              },
+              "image_file": {
+                "$ref": "#/$defs/ImageFileContent"
+              }
+            },
+            "required": [
+              "type",
+              "image_file"
+            ],
+            "title": "MessageImageFile",
+            "type": "object"
+          },
+          "MessageImageUrl": {
+            "description": "Model for image URL message content.",
+            "properties": {
+              "type": {
+                "const": "image_url",
+                "description": "The type of content part. Always image_url",
+                "title": "Type",
+                "type": "string"
+              },
+              "image_url": {
+                "$ref": "#/$defs/ImageUrlContent"
+              }
+            },
+            "required": [
+              "type",
+              "image_url"
+            ],
+            "title": "MessageImageUrl",
+            "type": "object"
+          },
+          "MessageRefusal": {
+            "description": "Model for refusal message content.",
+            "properties": {
+              "type": {
+                "const": "refusal",
+                "description": "The type of content part. Always refusal",
+                "title": "Type",
+                "type": "string"
+              },
+              "refusal": {
+                "$ref": "#/$defs/RefusalContent"
+              }
+            },
+            "required": [
+              "type",
+              "refusal"
+            ],
+            "title": "MessageRefusal",
+            "type": "object"
+          },
+          "MessageText": {
+            "description": "Model for text message content.",
+            "properties": {
+              "type": {
+                "const": "text",
+                "description": "The type of content part. Always text",
+                "title": "Type",
+                "type": "string"
+              },
+              "text": {
+                "$ref": "#/$defs/TextContent"
+              }
+            },
+            "required": [
+              "type",
+              "text"
+            ],
+            "title": "MessageText",
+            "type": "object"
+          },
+          "RefusalContent": {
+            "description": "Model for refusal content.",
+            "properties": {
+              "refusal": {
+                "description": "The refusal content generated by the assistant",
+                "title": "Refusal",
+                "type": "string"
+              }
+            },
+            "required": [
+              "refusal"
+            ],
+            "title": "RefusalContent",
+            "type": "object"
+          },
+          "TextContent": {
+            "description": "Model for text content.",
+            "properties": {
+              "value": {
+                "description": "The data that makes up the text",
+                "title": "Value",
+                "type": "string"
+              },
+              "annotations": {
+                "description": "Annotations providing additional context or references",
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/FileCitationAnnotation"
+                    },
+                    {
+                      "$ref": "#/$defs/FilePathAnnotation"
+                    }
+                  ]
+                },
+                "title": "Annotations",
+                "type": "array"
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "title": "TextContent",
+            "type": "object"
+          }
+        },
+        "required": [
+          "thread_id",
+          "role",
+          "content"
+        ],
+        "title": "create_messageArguments"
+      }
+    },
+    {
+      "name": "get_message",
+      "description": "\nGet message by ID.\n\nUse this to retrieve a specific message's details from a thread.\n\nArgs:\n    thread_id: (REQUIRED) The ID of the thread the message belongs to\n    message_id: (REQUIRED) The ID of the message to retrieve\n\nReturns:\n    MessageObject: The message containing:\n    - id: The unique identifier for the message\n    - object: Always \"thread.message\"\n    - created_at: Unix timestamp when the message was created\n    - thread_id: The ID of the thread this message belongs to\n    - role: The role of the entity that created the message (user/assistant)\n    - content: Array of message content (text, images, etc.)\n    - assistant_id: ID of the assistant that authored this message (if applicable)\n    - run_id: ID of the run associated with the message (if applicable)\n    - completed_at: Unix timestamp when the message was completed\n    - incomplete_at: Unix timestamp when the message was marked incomplete\n    - incomplete_details: Details about why the message is incomplete\n    - status: Message status (in_progress/incomplete/completed)\n    - attachments: Files attached to the message\n    - metadata: Key-value pairs attached to the message\n",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "thread_id": {
+            "title": "Thread Id",
+            "type": "string"
+          },
+          "message_id": {
+            "title": "Message Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "thread_id",
+          "message_id"
+        ],
+        "title": "get_messageArguments"
+      }
+    },
+    {
+      "name": "list_messages",
+      "description": "\nList messages for a thread.\n\nUse this to retrieve the conversation history in a thread.\n\nArgs:\n    thread_id: (REQUIRED) The ID of the thread to list messages for\n    limit: Limit on number of messages (1-100, default 20)\n    order: Sort order ('asc' or 'desc', default 'desc')\n    after: Cursor for pagination (get messages after this ID)\n    before: Cursor for pagination (get messages before this ID)\n    run_id: Filter for messages from a specific run\n\nReturns:\n    MessageListResponse: The list of messages containing:\n    - object: Always \"list\"\n    - data: Array of MessageObject items\n    - first_id: The ID of the first message in the list\n    - last_id: The ID of the last message in the list\n    - has_more: Whether there are more messages to fetch\n",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "thread_id": {
+            "title": "Thread Id",
+            "type": "string"
+          },
+          "limit": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Limit"
+          },
+          "order": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Order"
+          },
+          "after": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "After"
+          },
+          "before": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Before"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Run Id"
+          }
+        },
+        "required": [
+          "thread_id"
+        ],
+        "title": "list_messagesArguments"
+      }
+    },
+    {
+      "name": "modify_message",
+      "description": "\nModify a message.\n\nUse this to update message metadata after creation.\n\nArgs:\n    thread_id: (REQUIRED) The ID of the thread the message belongs to\n    message_id: (REQUIRED) The ID of the message to modify\n    metadata: Key-value pairs (max 16 pairs)\n\nReturns:\n    MessageObject: The modified message containing:\n    - id: The unique identifier for the message\n    - object: Always \"thread.message\"\n    - created_at: Unix timestamp when the message was created\n    - thread_id: The ID of the thread this message belongs to\n    - role: The role of the entity that created the message (user/assistant)\n    - content: Array of message content (text, images, etc.)\n    - assistant_id: ID of the assistant that authored this message (if applicable)\n    - run_id: ID of the run associated with the message (if applicable)\n    - completed_at: Unix timestamp when the message was completed\n    - incomplete_at: Unix timestamp when the message was marked incomplete\n    - incomplete_details: Details about why the message is incomplete\n    - status: Message status (in_progress/incomplete/completed)\n    - attachments: Files attached to the message\n    - metadata: Key-value pairs attached to the message\n",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "thread_id": {
+            "title": "Thread Id",
+            "type": "string"
+          },
+          "message_id": {
+            "title": "Message Id",
+            "type": "string"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Metadata"
+          }
+        },
+        "required": [
+          "thread_id",
+          "message_id"
+        ],
+        "title": "modify_messageArguments"
+      }
+    },
+    {
+      "name": "delete_message",
+      "description": "\nDelete a message.\n\nPermanently removes a message from a thread.\n\nArgs:\n    thread_id: (REQUIRED) The ID of the thread the message belongs to\n    message_id: (REQUIRED) The ID of the message to delete\n\nReturns:\n    DeleteMessageResponse: The deletion confirmation containing:\n    - id: The ID of the deleted message\n    - object: Always \"thread.message.deleted\"\n    - deleted: Boolean indicating whether the message was successfully deleted\n",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "thread_id": {
+            "title": "Thread Id",
+            "type": "string"
+          },
+          "message_id": {
+            "title": "Message Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "thread_id",
+          "message_id"
+        ],
+        "title": "delete_messageArguments"
+      }
+    },
+    {
+      "name": "create_run",
+      "description": "\nCreate a run.\n\nThis starts a new run with the specified assistant in a thread.\nA run represents the assistant processing messages and performing actions.\n\nArgs:\n    thread_id: (REQUIRED) The ID of the thread to run\n    assistant_id: (REQUIRED) The ID of the assistant to use\n    model: Model override for this run\n    instructions: Instructions override for this run\n    additional_instructions: Additional instructions for this run\n    tools: List of tools for this run\n    metadata: Key-value pairs (max 16 pairs)\n    stream: Boolean for streaming mode\n    temperature: Sampling temperature (0-2)\n    top_p: Nucleus sampling value (0-1)\n    max_completion_tokens: Maximum completion tokens\n    max_prompt_tokens: Maximum prompt tokens\n    response_format: Response format configuration\n    tool_choice: Tool choice configuration\n    truncation_strategy: Truncation strategy\n    parallel_tool_calls: Boolean for parallel tool calls\n\nReturns:\n    RunObject: The created run containing:\n    - id: The unique identifier for the run\n    - object: Always \"thread.run\"\n    - created_at: Unix timestamp when the run was created\n    - thread_id: The ID of the thread being executed on\n    - assistant_id: The ID of the assistant used for execution\n    - status: Current status\n            (queued/in_progress/requires_action/cancelling/cancelled/\n            failed/completed/incomplete/expired)\n    - required_action: Details on action required to continue the run\n    - last_error: The last error associated with this run\n    - expires_at: Unix timestamp when the run will expire\n    - started_at: Unix timestamp when the run was started\n    - cancelled_at: Unix timestamp when the run was cancelled\n    - failed_at: Unix timestamp when the run failed\n    - completed_at: Unix timestamp when the run was completed\n    - model: The model that the assistant used for this run\n    - instructions: The instructions that the assistant used for this run\n    - tools: List of tools that the assistant used for this run\n    - file_ids: List of File IDs the assistant used for this run\n    - metadata: Key-value pairs attached to the run\n    - usage: Usage statistics (completion_tokens, prompt_tokens, total_tokens)\n    - parallel_tool_calls: Whether parallel function calling is enabled\n    - max_completion_tokens: Maximum completion tokens specified\n    - max_prompt_tokens: Maximum prompt tokens specified\n    - temperature: Sampling temperature used for this run\n    - top_p: Nucleus sampling value used for this run\n    - response_format: Format specification for model output\n    - tool_choice: Controls which tool is called by the model\n    - truncation_strategy: Controls for thread truncation prior to run\n    - incomplete_details: Details on why the run is incomplete\n",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "thread_id": {
+            "title": "Thread Id",
+            "type": "string"
+          },
+          "assistant_id": {
+            "title": "Assistant Id",
+            "type": "string"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Model"
+          },
+          "instructions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Instructions"
+          },
+          "additional_instructions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Additional Instructions"
+          },
+          "tools": {
+            "anyOf": [
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/CodeInterpreterTool"
+                    },
+                    {
+                      "$ref": "#/$defs/FileSearchTool"
+                    },
+                    {
+                      "$ref": "#/$defs/FunctionTool"
+                    }
+                  ]
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Tools"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Metadata"
+          },
+          "stream": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Stream"
+          },
+          "temperature": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Temperature"
+          },
+          "top_p": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Top P"
+          },
+          "max_completion_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Max Completion Tokens"
+          },
+          "max_prompt_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Max Prompt Tokens"
+          },
+          "response_format": {
+            "anyOf": [
+              {
+                "const": "auto",
+                "type": "string"
+              },
+              {
+                "$ref": "#/$defs/ResponseFormat"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Response Format"
+          },
+          "tool_choice": {
+            "anyOf": [
+              {
+                "enum": [
+                  "none",
+                  "auto",
+                  "required"
+                ],
+                "type": "string"
+              },
+              {
+                "$ref": "#/$defs/ToolChoice"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Tool Choice"
+          },
+          "truncation_strategy": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/TruncationStrategy"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "parallel_tool_calls": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Parallel Tool Calls"
+          }
+        },
+        "$defs": {
+          "CodeInterpreterTool": {
+            "description": "Tool for executing code in a sandboxed environment.",
+            "properties": {
+              "type": {
+                "const": "code_interpreter",
+                "description": "The type of tool being defined: code_interpreter",
+                "title": "Type",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "title": "CodeInterpreterTool",
+            "type": "object"
+          },
+          "FileSearchTool": {
+            "description": "Tool for searching through files.",
+            "properties": {
+              "type": {
+                "const": "file_search",
+                "description": "The type of tool being defined: file_search",
+                "title": "Type",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "title": "FileSearchTool",
+            "type": "object"
+          },
+          "FunctionParameters": {
+            "description": "Parameters for a function tool.",
+            "properties": {
+              "name": {
+                "description": "The name of the function to be called.",
+                "maxLength": 64,
+                "pattern": "^[a-zA-Z0-9_-]+$",
+                "title": "Name",
+                "type": "string"
+              },
+              "description": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "A description of what the function does.",
+                "title": "Description"
+              },
+              "parameters": {
+                "anyOf": [
+                  {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "The parameters the functions accepts, described as a JSON Schema object.",
+                "title": "Parameters"
+              },
+              "strict": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Whether to enable strict schema adherence when generating the function call.",
+                "title": "Strict"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "title": "FunctionParameters",
+            "type": "object"
+          },
+          "FunctionTool": {
+            "description": "Tool for calling functions.",
+            "properties": {
+              "type": {
+                "const": "function",
+                "description": "The type of tool being defined: function",
+                "title": "Type",
+                "type": "string"
+              },
+              "function": {
+                "$ref": "#/$defs/FunctionParameters",
+                "description": "The function definition."
+              }
+            },
+            "required": [
+              "type",
+              "function"
+            ],
+            "title": "FunctionTool",
+            "type": "object"
+          },
+          "ResponseFormat": {
+            "description": "Unified response format model for OpenAI API.\n\nThis model handles all response format types: auto, text, json_object, and json_schema.\nWhen type is 'json_schema', the json_schema field must be provided with the schema configuration.",
+            "properties": {
+              "type": {
+                "default": "auto",
+                "description": "The type of response format. Can be 'auto', 'text', 'json_object', or 'json_schema'.",
+                "enum": [
+                  "auto",
+                  "text",
+                  "json_object",
+                  "json_schema"
+                ],
+                "title": "Type",
+                "type": "string"
+              },
+              "json_schema": {
+                "anyOf": [
+                  {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "JSON schema configuration when type is 'json_schema'. Must include 'name', 'schema', and optionally 'description' and 'strict'.",
+                "title": "Json Schema"
+              }
+            },
+            "title": "ResponseFormat",
+            "type": "object"
+          },
+          "ToolChoice": {
+            "description": "Model for tool choice configuration.",
+            "properties": {
+              "type": {
+                "description": "The type of the tool",
+                "enum": [
+                  "none",
+                  "auto",
+                  "function"
+                ],
+                "title": "Type",
+                "type": "string"
+              },
+              "function": {
+                "anyOf": [
+                  {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "The function configuration when type is function",
+                "title": "Function"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "title": "ToolChoice",
+            "type": "object"
+          },
+          "TruncationStrategy": {
+            "description": "Model for truncation strategy configuration.",
+            "properties": {
+              "type": {
+                "description": "The truncation strategy to use for the thread",
+                "enum": [
+                  "auto",
+                  "last_messages"
+                ],
+                "title": "Type",
+                "type": "string"
+              },
+              "last_messages": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "The number of most recent messages from the thread when constructing the context for the run",
+                "title": "Last Messages"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "title": "TruncationStrategy",
+            "type": "object"
+          }
+        },
+        "required": [
+          "thread_id",
+          "assistant_id"
+        ],
+        "title": "create_runArguments"
+      }
+    },
+    {
+      "name": "create_thread_and_run",
+      "description": "\nCreate a thread and run it in one request.\n\nThis combines creating a new thread and starting a run into a single operation.\nUseful when you want to start a fresh conversation with an assistant.\n\nArgs:\n    assistant_id: (REQUIRED) The ID of the assistant to use\n    thread: Thread configuration\n    model: Model override for this run\n    instructions: Instructions override for this run\n    tools: List of tools for this run\n    metadata: Key-value pairs (max 16 pairs)\n    stream: Boolean for streaming mode\n    temperature: Sampling temperature (0-2)\n    top_p: Nucleus sampling value (0-1)\n    max_completion_tokens: Maximum completion tokens\n    max_prompt_tokens: Maximum prompt tokens\n    response_format: Response format configuration\n    tool_choice: Tool choice configuration\n    truncation_strategy: Truncation strategy\n    parallel_tool_calls: Boolean for parallel tool calls\n\nReturns:\n    RunObject: The created run containing:\n    - id: The unique identifier for the run\n    - object: Always \"thread.run\"\n    - created_at: Unix timestamp when the run was created\n    - thread_id: The ID of the thread being executed on\n    - assistant_id: The ID of the assistant used for execution\n    - status: Current status\n            (queued/in_progress/requires_action/cancelling/cancelled/\n            failed/completed/incomplete/expired)\n    - required_action: Details on action required to continue the run\n    - last_error: The last error associated with this run\n    - expires_at: Unix timestamp when the run will expire\n    - started_at: Unix timestamp when the run was started\n    - cancelled_at: Unix timestamp when the run was cancelled\n    - failed_at: Unix timestamp when the run failed\n    - completed_at: Unix timestamp when the run was completed\n    - model: The model that the assistant used for this run\n    - instructions: The instructions that the assistant used for this run\n    - tools: List of tools that the assistant used for this run\n    - file_ids: List of File IDs the assistant used for this run\n    - metadata: Key-value pairs attached to the run\n    - usage: Usage statistics (completion_tokens, prompt_tokens, total_tokens)\n    - parallel_tool_calls: Whether parallel function calling is enabled\n    - max_completion_tokens: Maximum completion tokens specified\n    - max_prompt_tokens: Maximum prompt tokens specified\n    - temperature: Sampling temperature used for this run\n    - top_p: Nucleus sampling value used for this run\n    - response_format: Format specification for model output\n    - tool_choice: Controls which tool is called by the model\n    - truncation_strategy: Controls for thread truncation prior to run\n    - incomplete_details: Details on why the run is incomplete\n",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "assistant_id": {
+            "title": "Assistant Id",
+            "type": "string"
+          },
+          "thread": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Thread"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Model"
+          },
+          "instructions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Instructions"
+          },
+          "tools": {
+            "anyOf": [
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/CodeInterpreterTool"
+                    },
+                    {
+                      "$ref": "#/$defs/FileSearchTool"
+                    },
+                    {
+                      "$ref": "#/$defs/FunctionTool"
+                    }
+                  ]
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Tools"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Metadata"
+          },
+          "stream": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Stream"
+          },
+          "temperature": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Temperature"
+          },
+          "top_p": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Top P"
+          },
+          "max_completion_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Max Completion Tokens"
+          },
+          "max_prompt_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Max Prompt Tokens"
+          },
+          "response_format": {
+            "anyOf": [
+              {
+                "const": "auto",
+                "type": "string"
+              },
+              {
+                "$ref": "#/$defs/ResponseFormat"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Response Format"
+          },
+          "tool_choice": {
+            "anyOf": [
+              {
+                "enum": [
+                  "none",
+                  "auto",
+                  "required"
+                ],
+                "type": "string"
+              },
+              {
+                "$ref": "#/$defs/ToolChoice"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Tool Choice"
+          },
+          "truncation_strategy": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/TruncationStrategy"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "parallel_tool_calls": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Parallel Tool Calls"
+          }
+        },
+        "$defs": {
+          "CodeInterpreterTool": {
+            "description": "Tool for executing code in a sandboxed environment.",
+            "properties": {
+              "type": {
+                "const": "code_interpreter",
+                "description": "The type of tool being defined: code_interpreter",
+                "title": "Type",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "title": "CodeInterpreterTool",
+            "type": "object"
+          },
+          "FileSearchTool": {
+            "description": "Tool for searching through files.",
+            "properties": {
+              "type": {
+                "const": "file_search",
+                "description": "The type of tool being defined: file_search",
+                "title": "Type",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "title": "FileSearchTool",
+            "type": "object"
+          },
+          "FunctionParameters": {
+            "description": "Parameters for a function tool.",
+            "properties": {
+              "name": {
+                "description": "The name of the function to be called.",
+                "maxLength": 64,
+                "pattern": "^[a-zA-Z0-9_-]+$",
+                "title": "Name",
+                "type": "string"
+              },
+              "description": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "A description of what the function does.",
+                "title": "Description"
+              },
+              "parameters": {
+                "anyOf": [
+                  {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "The parameters the functions accepts, described as a JSON Schema object.",
+                "title": "Parameters"
+              },
+              "strict": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Whether to enable strict schema adherence when generating the function call.",
+                "title": "Strict"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "title": "FunctionParameters",
+            "type": "object"
+          },
+          "FunctionTool": {
+            "description": "Tool for calling functions.",
+            "properties": {
+              "type": {
+                "const": "function",
+                "description": "The type of tool being defined: function",
+                "title": "Type",
+                "type": "string"
+              },
+              "function": {
+                "$ref": "#/$defs/FunctionParameters",
+                "description": "The function definition."
+              }
+            },
+            "required": [
+              "type",
+              "function"
+            ],
+            "title": "FunctionTool",
+            "type": "object"
+          },
+          "ResponseFormat": {
+            "description": "Unified response format model for OpenAI API.\n\nThis model handles all response format types: auto, text, json_object, and json_schema.\nWhen type is 'json_schema', the json_schema field must be provided with the schema configuration.",
+            "properties": {
+              "type": {
+                "default": "auto",
+                "description": "The type of response format. Can be 'auto', 'text', 'json_object', or 'json_schema'.",
+                "enum": [
+                  "auto",
+                  "text",
+                  "json_object",
+                  "json_schema"
+                ],
+                "title": "Type",
+                "type": "string"
+              },
+              "json_schema": {
+                "anyOf": [
+                  {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "JSON schema configuration when type is 'json_schema'. Must include 'name', 'schema', and optionally 'description' and 'strict'.",
+                "title": "Json Schema"
+              }
+            },
+            "title": "ResponseFormat",
+            "type": "object"
+          },
+          "ToolChoice": {
+            "description": "Model for tool choice configuration.",
+            "properties": {
+              "type": {
+                "description": "The type of the tool",
+                "enum": [
+                  "none",
+                  "auto",
+                  "function"
+                ],
+                "title": "Type",
+                "type": "string"
+              },
+              "function": {
+                "anyOf": [
+                  {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "The function configuration when type is function",
+                "title": "Function"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "title": "ToolChoice",
+            "type": "object"
+          },
+          "TruncationStrategy": {
+            "description": "Model for truncation strategy configuration.",
+            "properties": {
+              "type": {
+                "description": "The truncation strategy to use for the thread",
+                "enum": [
+                  "auto",
+                  "last_messages"
+                ],
+                "title": "Type",
+                "type": "string"
+              },
+              "last_messages": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "The number of most recent messages from the thread when constructing the context for the run",
+                "title": "Last Messages"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "title": "TruncationStrategy",
+            "type": "object"
+          }
+        },
+        "required": [
+          "assistant_id"
+        ],
+        "title": "create_thread_and_runArguments"
+      }
+    },
+    {
+      "name": "list_runs",
+      "description": "\nList runs for a thread.\n\nUse this to view the history of runs in a thread.\n\nArgs:\n    thread_id: (REQUIRED) The ID of the thread to list runs for\n    limit: Limit on number of runs (1-100, default 20)\n    order: Sort order ('asc' or 'desc', default 'desc')\n    after: Cursor for pagination (get runs after this ID)\n    before: Cursor for pagination (get runs before this ID)\n\nReturns:\n    RunListResponse: The list of runs containing:\n    - object: Always \"list\"\n    - data: Array of RunObject items\n    - first_id: The ID of the first run in the list\n    - last_id: The ID of the last run in the list\n    - has_more: Whether there are more runs available\n",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "thread_id": {
+            "title": "Thread Id",
+            "type": "string"
+          },
+          "limit": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Limit"
+          },
+          "order": {
+            "anyOf": [
+              {
+                "enum": [
+                  "asc",
+                  "desc"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Order"
+          },
+          "after": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "After"
+          },
+          "before": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Before"
+          }
+        },
+        "required": [
+          "thread_id"
+        ],
+        "title": "list_runsArguments"
+      }
+    },
+    {
+      "name": "get_run",
+      "description": "\nGet run by ID.\n\nUse this to retrieve details about a specific run.\n\nArgs:\n    thread_id: (REQUIRED) The ID of the thread the run belongs to\n    run_id: (REQUIRED) The ID of the run to retrieve\n\nReturns:\n    RunObject: The created run containing:\n    - id: The unique identifier for the run\n    - object: Always \"thread.run\"\n    - created_at: Unix timestamp when the run was created\n    - thread_id: The ID of the thread being executed on\n    - assistant_id: The ID of the assistant used for execution\n    - status: Current status\n            (queued/in_progress/requires_action/cancelling/cancelled/\n            failed/completed/incomplete/expired)\n    - required_action: Details on action required to continue the run\n    - last_error: The last error associated with this run\n    - expires_at: Unix timestamp when the run will expire\n    - started_at: Unix timestamp when the run was started\n    - cancelled_at: Unix timestamp when the run was cancelled\n    - failed_at: Unix timestamp when the run failed\n    - completed_at: Unix timestamp when the run was completed\n    - model: The model that the assistant used for this run\n    - instructions: The instructions that the assistant used for this run\n    - tools: List of tools that the assistant used for this run\n    - file_ids: List of File IDs the assistant used for this run\n    - metadata: Key-value pairs attached to the run\n    - usage: Usage statistics (completion_tokens, prompt_tokens, total_tokens)\n    - parallel_tool_calls: Whether parallel function calling is enabled\n    - max_completion_tokens: Maximum completion tokens specified\n    - max_prompt_tokens: Maximum prompt tokens specified\n    - temperature: Sampling temperature used for this run\n    - top_p: Nucleus sampling value used for this run\n    - response_format: Format specification for model output\n    - tool_choice: Controls which tool is called by the model\n    - truncation_strategy: Controls for thread truncation prior to run\n    - incomplete_details: Details on why the run is incomplete\n",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "thread_id": {
+            "title": "Thread Id",
+            "type": "string"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "thread_id",
+          "run_id"
+        ],
+        "title": "get_runArguments"
+      }
+    },
+    {
+      "name": "modify_run",
+      "description": "\nModify a run.\n\nUse this to update a run's metadata.\n\nArgs:\n    thread_id: (REQUIRED) The ID of the thread the run belongs to\n    run_id: (REQUIRED) The ID of the run to modify\n    metadata: Key-value pairs (max 16 pairs)\n\nReturns:\n    RunObject: The created run containing:\n    - id: The unique identifier for the run\n    - object: Always \"thread.run\"\n    - created_at: Unix timestamp when the run was created\n    - thread_id: The ID of the thread being executed on\n    - assistant_id: The ID of the assistant used for execution\n    - status: Current status\n            (queued/in_progress/requires_action/cancelling/cancelled/\n            failed/completed/incomplete/expired)\n    - required_action: Details on action required to continue the run\n    - last_error: The last error associated with this run\n    - expires_at: Unix timestamp when the run will expire\n    - started_at: Unix timestamp when the run was started\n    - cancelled_at: Unix timestamp when the run was cancelled\n    - failed_at: Unix timestamp when the run failed\n    - completed_at: Unix timestamp when the run was completed\n    - model: The model that the assistant used for this run\n    - instructions: The instructions that the assistant used for this run\n    - tools: List of tools that the assistant used for this run\n    - file_ids: List of File IDs the assistant used for this run\n    - metadata: Key-value pairs attached to the run\n    - usage: Usage statistics (completion_tokens, prompt_tokens, total_tokens)\n    - parallel_tool_calls: Whether parallel function calling is enabled\n    - max_completion_tokens: Maximum completion tokens specified\n    - max_prompt_tokens: Maximum prompt tokens specified\n    - temperature: Sampling temperature used for this run\n    - top_p: Nucleus sampling value used for this run\n    - response_format: Format specification for model output\n    - tool_choice: Controls which tool is called by the model\n    - truncation_strategy: Controls for thread truncation prior to run\n    - incomplete_details: Details on why the run is incomplete\n",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "thread_id": {
+            "title": "Thread Id",
+            "type": "string"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Metadata"
+          }
+        },
+        "required": [
+          "thread_id",
+          "run_id"
+        ],
+        "title": "modify_runArguments"
+      }
+    },
+    {
+      "name": "submit_tool_outputs",
+      "description": "\nSubmit outputs for tool calls.\n\nUse this to provide the results of tool calls back to the assistant.\n\nArgs:\n    thread_id: (REQUIRED) The ID of the thread the run belongs to\n    run_id: (REQUIRED) The ID of the run to submit outputs for\n    tool_outputs: (REQUIRED) List of tool outputs with tool_call_id and output\n    stream: Boolean for streaming mode\n\nReturns:\n    RunObject: The created run containing:\n    - id: The unique identifier for the run\n    - object: Always \"thread.run\"\n    - created_at: Unix timestamp when the run was created\n    - thread_id: The ID of the thread being executed on\n    - assistant_id: The ID of the assistant used for execution\n    - status: Current status\n            (queued/in_progress/requires_action/cancelling/cancelled/\n            failed/completed/incomplete/expired)\n    - required_action: Details on action required to continue the run\n    - last_error: The last error associated with this run\n    - expires_at: Unix timestamp when the run will expire\n    - started_at: Unix timestamp when the run was started\n    - cancelled_at: Unix timestamp when the run was cancelled\n    - failed_at: Unix timestamp when the run failed\n    - completed_at: Unix timestamp when the run was completed\n    - model: The model that the assistant used for this run\n    - instructions: The instructions that the assistant used for this run\n    - tools: List of tools that the assistant used for this run\n    - file_ids: List of File IDs the assistant used for this run\n    - metadata: Key-value pairs attached to the run\n    - usage: Usage statistics (completion_tokens, prompt_tokens, total_tokens)\n    - parallel_tool_calls: Whether parallel function calling is enabled\n    - max_completion_tokens: Maximum completion tokens specified\n    - max_prompt_tokens: Maximum prompt tokens specified\n    - temperature: Sampling temperature used for this run\n    - top_p: Nucleus sampling value used for this run\n    - response_format: Format specification for model output\n    - tool_choice: Controls which tool is called by the model\n    - truncation_strategy: Controls for thread truncation prior to run\n    - incomplete_details: Details on why the run is incomplete\n",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "thread_id": {
+            "title": "Thread Id",
+            "type": "string"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "tool_outputs": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "title": "Tool Outputs",
+            "type": "array"
+          },
+          "stream": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Stream"
+          }
+        },
+        "required": [
+          "thread_id",
+          "run_id",
+          "tool_outputs"
+        ],
+        "title": "submit_tool_outputsArguments"
+      }
+    },
+    {
+      "name": "cancel_run",
+      "description": "\nCancel a run.\n\nUse this to stop a run that is in progress.\n\nArgs:\n    thread_id: (REQUIRED) The ID of the thread the run belongs to\n    run_id: (REQUIRED) The ID of the run to cancel\n\nReturns:\n    RunObject: The created run containing:\n    - id: The unique identifier for the run\n    - object: Always \"thread.run\"\n    - created_at: Unix timestamp when the run was created\n    - thread_id: The ID of the thread being executed on\n    - assistant_id: The ID of the assistant used for execution\n    - status: Current status\n            (queued/in_progress/requires_action/cancelling/cancelled/\n            failed/completed/incomplete/expired)\n    - required_action: Details on action required to continue the run\n    - last_error: The last error associated with this run\n    - expires_at: Unix timestamp when the run will expire\n    - started_at: Unix timestamp when the run was started\n    - cancelled_at: Unix timestamp when the run was cancelled\n    - failed_at: Unix timestamp when the run failed\n    - completed_at: Unix timestamp when the run was completed\n    - model: The model that the assistant used for this run\n    - instructions: The instructions that the assistant used for this run\n    - tools: List of tools that the assistant used for this run\n    - file_ids: List of File IDs the assistant used for this run\n    - metadata: Key-value pairs attached to the run\n    - usage: Usage statistics (completion_tokens, prompt_tokens, total_tokens)\n    - parallel_tool_calls: Whether parallel function calling is enabled\n    - max_completion_tokens: Maximum completion tokens specified\n    - max_prompt_tokens: Maximum prompt tokens specified\n    - temperature: Sampling temperature used for this run\n    - top_p: Nucleus sampling value used for this run\n    - response_format: Format specification for model output\n    - tool_choice: Controls which tool is called by the model\n    - truncation_strategy: Controls for thread truncation prior to run\n    - incomplete_details: Details on why the run is incomplete\n",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "thread_id": {
+            "title": "Thread Id",
+            "type": "string"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "thread_id",
+          "run_id"
+        ],
+        "title": "cancel_runArguments"
+      }
+    },
+    {
+      "name": "list_run_steps",
+      "description": "\nList run steps for a run.\n\nUse this to view the sequence of steps taken during a run.\n\nArgs:\n    thread_id: (REQUIRED) The ID of the thread the run belongs to\n    run_id: (REQUIRED) The ID of the run to list steps for\n    limit: Limit on number of steps (1-100, default 20)\n    order: Sort order ('asc' or 'desc', default 'desc')\n    after: Cursor for pagination (get steps after this ID)\n    before: Cursor for pagination (get steps before this ID)\n    include: List of additional fields to include in the response\n            Currently only supports\n            'step_details.tool_calls[*].file_search.results[*].content'\n\nReturns:\n    RunStepListResponse: The list of run steps containing:\n    - object: Always \"list\"\n    - data: Array of RunStepObject items\n    - first_id: The ID of the first run step in the list\n    - last_id: The ID of the last run step in the list\n    - has_more: Whether there are more run steps to fetch\n",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "thread_id": {
+            "title": "Thread Id",
+            "type": "string"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "limit": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Limit"
+          },
+          "order": {
+            "anyOf": [
+              {
+                "enum": [
+                  "asc",
+                  "desc"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Order"
+          },
+          "after": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "After"
+          },
+          "before": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Before"
+          },
+          "include": {
+            "anyOf": [
+              {
+                "items": {
+                  "const": "step_details.tool_calls[*].file_search.results[*].content",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Include"
+          }
+        },
+        "required": [
+          "thread_id",
+          "run_id"
+        ],
+        "title": "list_run_stepsArguments"
+      }
+    },
+    {
+      "name": "get_run_step",
+      "description": "\nGet run step by ID.\n\nUse this to retrieve details about a specific step in a run.\n\nArgs:\n    thread_id: (REQUIRED) The ID of the thread the run belongs to\n    run_id: (REQUIRED) The ID of the run the step belongs to\n    step_id: (REQUIRED) The ID of the run step to retrieve\n    include: List of additional fields to include in the response\n            Currently only supports\n            'step_details.tool_calls[*].file_search.results[*].content'\n\nReturns:\n    RunStepObject: The run step containing:\n    - id: The unique identifier for the run step\n    - object: Always \"thread.run.step\"\n    - created_at: Unix timestamp when the run step was created\n    - run_id: The ID of the run this step is a part of\n    - assistant_id: The ID of the assistant associated with this run step\n    - thread_id: The ID of the thread this run step is a part of\n    - type: The type of run step (message_creation/tool_calls)\n    - status: The status of the run step\n            (in_progress/cancelled/failed/completed/expired)\n    - cancelled_at: Unix timestamp when the run step was cancelled\n    - completed_at: Unix timestamp when the run step was completed\n    - expired_at: Unix timestamp when the run step expired\n    - failed_at: Unix timestamp when the run step failed\n    - last_error: The last error associated with this run step\n    - metadata: Key-value pairs attached to the run step\n    - step_details: The details of the run step (message creation or tool calls)\n    - usage: Usage statistics related to the run step\n",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "thread_id": {
+            "title": "Thread Id",
+            "type": "string"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "step_id": {
+            "title": "Step Id",
+            "type": "string"
+          },
+          "include": {
+            "anyOf": [
+              {
+                "items": {
+                  "const": "step_details.tool_calls[*].file_search.results[*].content",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Include"
+          }
+        },
+        "required": [
+          "thread_id",
+          "run_id",
+          "step_id"
+        ],
+        "title": "get_run_stepArguments"
+      }
+    }
+  ]
+}
