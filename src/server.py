@@ -84,7 +84,7 @@ logger = logging.getLogger(__name__)
 logger.info("Loaded settings: %s", settings)
 
 # Initialize FastMCP server
-logger.info("Creating FastMCP server")
+logger.info(f"Creating FastMCP server with {settings.TRANSPORT} transport")
 mcp = FastMCP(
     "openai-assistant-api",
     host=settings.HOST,
@@ -1090,4 +1090,21 @@ def get_run_step(
 
 
 if __name__ == "__main__":
-    mcp.run()
+    transport = settings.TRANSPORT.lower()
+
+    if transport == "stdio":
+        logger.info("Starting server with stdio transport")
+        mcp.run(transport="stdio")
+    elif transport in ("http", "streamable-http"):
+        logger.info(
+            f"Starting server with HTTP transport on {settings.HOST}:{settings.PORT}"
+        )
+        mcp.run(transport="streamable-http", host=settings.HOST, port=settings.PORT)
+    elif transport == "sse":
+        logger.info(
+            f"Starting server with SSE transport on {settings.HOST}:{settings.PORT}"
+        )
+        mcp.run(transport="sse", host=settings.HOST, port=settings.PORT)
+    else:
+        logger.warning(f"Unknown transport '{transport}', falling back to stdio")
+        mcp.run(transport="stdio")

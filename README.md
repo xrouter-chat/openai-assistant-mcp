@@ -25,19 +25,77 @@ Or create a `.env` file:
 OPENAI_API_KEY=your_api_key_here
 ```
 
+### Transport Configuration
+
+The server supports multiple transport mechanisms via the `TRANSPORT` environment variable:
+
+```bash
+# stdio (default) - for CLI tools and Claude Desktop
+export TRANSPORT=stdio
+
+# HTTP - modern streamable HTTP transport (recommended for web)
+export TRANSPORT=http
+# or
+export TRANSPORT=streamable-http
+
+# SSE - Server-Sent Events (legacy, for backward compatibility)
+export TRANSPORT=sse
+```
+
+Or in your `.env` file:
+```
+TRANSPORT=stdio
+HOST=0.0.0.0
+PORT=8001
+```
+
 ## Running the Server
 
-### Option 1: Direct Python execution
+### Transport-Specific Examples
+
+#### STDIO Transport (Default)
+Best for CLI tools and Claude Desktop integration:
+```bash
+# Set transport to stdio
+export TRANSPORT=stdio
+uv run python run_server.py
+```
+
+#### HTTP Transport (Recommended for Web)
+Modern streamable HTTP transport for web services:
+```bash
+# Set transport to HTTP
+export TRANSPORT=http
+export HOST=0.0.0.0
+export PORT=8001
+uv run python run_server.py
+```
+
+Server will be available at: `http://localhost:8001`
+
+#### SSE Transport (Legacy)
+Server-Sent Events for backward compatibility:
+```bash
+# Set transport to SSE
+export TRANSPORT=sse
+export HOST=0.0.0.0
+export PORT=8001
+uv run python run_server.py
+```
+
+### Development Options
+
+#### Option 1: Direct Python execution
 ```bash
 uv run mcp run run_server.py
 ```
 
-### Option 2: MCP Dev Mode (for development)
+#### Option 2: MCP Dev Mode (for development)
 ```bash
 uv run mcp dev run_server.py
 ```
 
-### Option 3: MCPO with FastAPI UI (recommended)
+#### Option 3: MCPO with FastAPI UI (recommended for HTTP transport)
 Due to a bug in the official mcpo release, use the fixed fork:
 ```bash
 uvx --from git+https://github.com/bmen25124/mcpo.git@fix_schema_defs_not_found mcpo --port 8602 -- uv run mcp run run_server.py

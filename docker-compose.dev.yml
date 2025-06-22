@@ -1,0 +1,17 @@
+services:
+  openai-assistant-mcp:
+    image: ghcr.io/${REGISTRY_ID}/${PROJECT_NAME}:${VERSION}
+    container_name: ${PROJECT_NAME}
+    platform: linux/amd64
+    ports:
+      - "${PORT:-8001}:${PORT:-8001}"
+    env_file:
+      - ./.env
+    environment:
+      - TRANSPORT=${TRANSPORT:-http}
+      - HOST=0.0.0.0
+      - PORT=${PORT:-8001}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    restart: unless-stopped
+    volumes:
+      - ${HOME}/.${PROJECT_NAME}:/home/app/.${PROJECT_NAME}

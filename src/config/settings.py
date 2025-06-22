@@ -41,6 +41,20 @@ class Settings(BaseSettings):
     # OpenAI Settings
     OPENAI_API_KEY: str = ""
 
+    # MCP Transport Settings
+    TRANSPORT: str = "stdio"  # stdio, http, streamable-http, or sse
+
+    @field_validator("TRANSPORT")
+    @classmethod
+    def validate_transport(cls, v: str) -> str:
+        """Validate transport type."""
+        allowed_transports = {"stdio", "http", "streamable-http", "sse"}
+        if v.lower() not in allowed_transports:
+            raise ValueError(
+                f"Transport must be one of: {', '.join(allowed_transports)}"
+            )
+        return v.lower()
+
     model_config = {
         "env_file": ".env",
         "env_file_encoding": "utf-8",
