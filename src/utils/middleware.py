@@ -1,4 +1,4 @@
-"""Middleware for handling credentials in PASSTHROUGH mode."""
+"""Middleware for handling credentials in passthrough mode."""
 import logging
 from typing import Callable
 
@@ -10,15 +10,15 @@ logger = logging.getLogger(__name__)
 
 
 class PassthroughHeadersMiddleware(BaseHTTPMiddleware):
-    """Middleware to extract credentials from headers in PASSTHROUGH mode."""
+    """Middleware to extract credentials from headers in passthrough mode."""
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
-        """Extract OpenAI API key from headers if in PASSTHROUGH mode."""
+        """Extract OpenAI API key from headers if in passthrough mode."""
         # Check if we have app context from lifespan
         if hasattr(request.app.state, "app_context"):
             app_context = request.app.state.app_context
 
-            if app_context.settings.MCP_CREDENTIAL_MODE == "PASSTHROUGH":
+            if app_context.settings.MCP_CREDENTIAL_MODE == "passthrough":
                 # Extract API key from header (case-insensitive)
                 api_key = None
                 for header_name, header_value in request.headers.items():

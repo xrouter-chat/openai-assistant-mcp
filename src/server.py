@@ -96,17 +96,17 @@ async def openai_lifespan(app: FastMCP) -> AsyncIterator[dict]:
     settings = Settings()
     logger.info(f"Loaded settings: {settings}")
 
-    # Create OpenAI client for STATIC mode
+    # Create OpenAI client for static mode
     openai_client = None
-    if settings.MCP_CREDENTIAL_MODE == "STATIC":
+    if settings.MCP_CREDENTIAL_MODE == "static":
         try:
             if not settings.OPENAI_API_KEY:
                 raise ValueError(
-                    "OPENAI_API_KEY environment variable is required in STATIC mode"
+                    "OPENAI_API_KEY environment variable is required in static mode"
                 )
 
             openai_client = OpenAI(api_key=settings.OPENAI_API_KEY)
-            logger.info("Created OpenAI client for STATIC mode")
+            logger.info("Created OpenAI client for static mode")
         except Exception as e:
             logger.error(f"Failed to create OpenAI client: {e}")
             # Don't fail startup, let it fail at request time with better error
@@ -144,10 +144,10 @@ def create_server() -> FastMCP:
         lifespan=openai_lifespan,
     )
 
-    # Add middleware for PASSTHROUGH mode
-    if settings.MCP_CREDENTIAL_MODE == "PASSTHROUGH":
+    # Add middleware for passthrough mode
+    if settings.MCP_CREDENTIAL_MODE == "passthrough":
         mcp.app.add_middleware(PassthroughHeadersMiddleware)
-        logger.info("Added PassthroughHeadersMiddleware for PASSTHROUGH mode")
+        logger.info("Added PassthroughHeadersMiddleware for passthrough mode")
 
     return mcp
 

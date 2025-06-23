@@ -15,8 +15,8 @@ def get_openai_client() -> OpenAI:
     """Get OpenAI client for current request.
 
     For STDIO transport: Creates client from environment settings.
-    For HTTP transport in STATIC mode: Creates client from environment settings.
-    For HTTP transport in PASSTHROUGH mode: Creates client from request headers.
+    For HTTP transport in static mode: Creates client from environment settings.
+    For HTTP transport in passthrough mode: Creates client from request headers.
 
     Returns:
         OpenAI client instance
@@ -48,27 +48,27 @@ def get_openai_client() -> OpenAI:
             return OpenAI(api_key=settings.OPENAI_API_KEY)
 
         # HTTP mode
-        if settings.MCP_CREDENTIAL_MODE == "STATIC":
+        if settings.MCP_CREDENTIAL_MODE == "static":
             # Use settings even in HTTP mode
             if not settings.OPENAI_API_KEY:
                 raise ValueError(
-                    "OPENAI_API_KEY environment variable is required in STATIC mode"
+                    "OPENAI_API_KEY environment variable is required in static mode"
                 )
 
-            logger.debug("Creating OpenAI client from environment (HTTP STATIC mode)")
+            logger.debug("Creating OpenAI client from environment (HTTP static mode)")
             return OpenAI(api_key=settings.OPENAI_API_KEY)
 
-        elif settings.MCP_CREDENTIAL_MODE == "PASSTHROUGH":
+        elif settings.MCP_CREDENTIAL_MODE == "passthrough":
             # Get API key from request state (set by middleware)
             api_key = getattr(request.state, "openai_api_key", None)
             if not api_key:
                 raise ValueError(
-                    "X-OpenAI-API-Key header is required in PASSTHROUGH mode"
+                    "X-OpenAI-API-Key header is required in passthrough mode"
                 )
 
             # Create client on the fly
             logger.debug(
-                "Creating OpenAI client from request headers (PASSTHROUGH mode)"
+                "Creating OpenAI client from request headers (passthrough mode)"
             )
             return OpenAI(api_key=api_key)
 

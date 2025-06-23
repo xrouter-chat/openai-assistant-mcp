@@ -12,4 +12,4 @@ class OpenAIAppContext:
     """Application context containing all shared dependencies."""
 
     settings: Settings
-    openai_client: Optional[OpenAI] = None  # Only for STATIC mode
+    openai_client: Optional[OpenAI] = None  # Only for static mode

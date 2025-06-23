@@ -4,14 +4,9 @@ services:
     container_name: ${PROJECT_NAME}
     platform: linux/amd64
     ports:
-      - "${PORT:-8001}:${PORT:-8001}"
+      - "${PORT:-8660}:${PORT:-8660}"
     env_file:
       - ./.env
-    environment:
-      - TRANSPORT=${TRANSPORT:-http}
-      - HOST=0.0.0.0
-      - PORT=${PORT:-8001}
-      - LOG_LEVEL=${LOG_LEVEL:-INFO}
     restart: unless-stopped
     volumes:
       - ${HOME}/.${PROJECT_NAME}:/home/app/.${PROJECT_NAME}

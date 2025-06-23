@@ -28,11 +28,12 @@ if [ $? -eq 0 ]; then
     docker compose -f docker-compose.dev.yml down
     docker compose -f docker-compose.dev.yml up -d
 
+    echo "Logging in to Container Registry..."
+    echo "$docker_token" | docker login ghcr.io --username "$docker_username" --password-stdin
     echo "Pushing Docker images to registry..."
-    echo "$docker_token" | docker login --username "$docker_username" --password-stdin
-    docker push "$docker_username"/${PROJECT_NAME}:${VERSION}
-    docker push "$docker_username"/${PROJECT_NAME}:latest
-    docker logout
+    docker compose -f docker-compose.build.yml push
+    echo "Logging out from registry..."
+    docker logout ghcr.io
 
     echo "Build and push completed successfully!"
 else
