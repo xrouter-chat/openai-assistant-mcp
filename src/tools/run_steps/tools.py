@@ -7,14 +7,11 @@ from openai.pagination import SyncCursorPage
 from openai.types.beta.threads.runs import RunStepInclude
 from openai.types.beta.threads.runs.run_step import RunStep
 
-from src.config.settings import Settings
-
 logger = logging.getLogger(__name__)
-settings = Settings()
-client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
 
 def list_run_steps(
+    client: OpenAI,
     thread_id: str,
     run_id: str,
     limit: Optional[int] = None,
@@ -27,6 +24,7 @@ def list_run_steps(
     List run steps for a run.
 
     Args:
+        client: OpenAI client instance (injected)
         thread_id: (REQUIRED) The ID of the thread the run belongs to
         run_id: (REQUIRED) The ID of the run to list steps for
         limit: Limit on number of steps (1-100, default 20)
@@ -57,6 +55,7 @@ def list_run_steps(
 
 
 def get_run_step(
+    client: OpenAI,
     thread_id: str,
     run_id: str,
     step_id: str,
@@ -66,6 +65,7 @@ def get_run_step(
     Get run step by ID.
 
     Args:
+        client: OpenAI client instance (injected)
         thread_id: (REQUIRED) The ID of the thread the run belongs to
         run_id: (REQUIRED) The ID of the run the step belongs to
         step_id: (REQUIRED) The ID of the run step to retrieve

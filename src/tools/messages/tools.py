@@ -7,8 +7,6 @@ from openai.pagination import SyncCursorPage
 from openai.types.beta.threads.message import Message
 from openai.types.beta.threads.message_deleted import MessageDeleted
 
-from src.config.settings import Settings
-
 from .models import (
     CreateMessageRequest,
     MessageAttachment,
@@ -17,11 +15,10 @@ from .models import (
 )
 
 logger = logging.getLogger(__name__)
-settings = Settings()
-client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
 
 def create_message(
+    client: OpenAI,
     thread_id: str,
     role: Literal["user", "assistant"],
     content: Union[str, List[MessageContent]],
@@ -32,6 +29,7 @@ def create_message(
     Create a message.
 
     Args:
+        client: OpenAI client instance (injected)
         thread_id: (REQUIRED) The ID of the thread to create a message for
         role: (REQUIRED) The role of the entity creating the message
             ('user' or 'assistant')
@@ -74,6 +72,7 @@ def create_message(
 
 
 def list_messages(
+    client: OpenAI,
     thread_id: str,
     limit: Optional[int] = None,
     order: Optional[str] = None,
@@ -85,6 +84,7 @@ def list_messages(
     List messages for a thread.
 
     Args:
+        client: OpenAI client instance (injected)
         thread_id: (REQUIRED) The ID of the thread to list messages for
         limit: Limit on number of messages (1-100, default 20)
         order: Sort order ('asc' or 'desc', default 'desc')
@@ -111,11 +111,16 @@ def list_messages(
     return response
 
 
-def get_message(thread_id: str, message_id: str) -> Message:
+def get_message(
+    client: OpenAI,
+    thread_id: str,
+    message_id: str,
+) -> Message:
     """
     Get message by ID.
 
     Args:
+        client: OpenAI client instance (injected)
         thread_id: (REQUIRED) The ID of the thread the message belongs to
         message_id: (REQUIRED) The ID of the message to retrieve
 
@@ -131,6 +136,7 @@ def get_message(thread_id: str, message_id: str) -> Message:
 
 
 def modify_message(
+    client: OpenAI,
     thread_id: str,
     message_id: str,
     metadata: Optional[Dict[str, str]] = None,
@@ -139,6 +145,7 @@ def modify_message(
     Modify a message.
 
     Args:
+        client: OpenAI client instance (injected)
         thread_id: (REQUIRED) The ID of the thread the message belongs to
         message_id: (REQUIRED) The ID of the message to modify
         metadata: Key-value pairs (max 16 pairs)
@@ -156,11 +163,16 @@ def modify_message(
     return response
 
 
-def delete_message(thread_id: str, message_id: str) -> MessageDeleted:
+def delete_message(
+    client: OpenAI,
+    thread_id: str,
+    message_id: str,
+) -> MessageDeleted:
     """
     Delete a message.
 
     Args:
+        client: OpenAI client instance (injected)
         thread_id: (REQUIRED) The ID of the thread the message belongs to
         message_id: (REQUIRED) The ID of the message to delete
 

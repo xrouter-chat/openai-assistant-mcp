@@ -4,9 +4,11 @@ This module implements an MCP server for interacting with OpenAI Assistant API.
 """
 
 import logging
-from typing import Any, Dict, List, Literal, Optional, Union
+from contextlib import asynccontextmanager
+from typing import Any, AsyncIterator, Dict, List, Literal, Optional, Union
 
 from mcp.server.fastmcp import FastMCP
+from openai import OpenAI
 
 # Run tools
 # Run models
@@ -70,27 +72,92 @@ from .tools.threads import create_thread as tools_create_thread
 from .tools.threads import delete_thread as tools_delete_thread
 from .tools.threads import get_thread as tools_get_thread
 from .tools.threads import modify_thread as tools_modify_thread
+from .utils.app_context import OpenAIAppContext
+from .utils.dependencies import get_openai_client
+from .utils.middleware import PassthroughHeadersMiddleware
 
-# Load settings
+
+def _configure_logging(settings: Settings) -> None:
+    """Configure application logging."""
+    logging.basicConfig(
+        level=getattr(logging, settings.LOG_LEVEL),
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+
+
+@asynccontextmanager
+async def openai_lifespan(app: FastMCP) -> AsyncIterator[dict]:
+    """Lifespan context manager for OpenAI MCP server."""
+    logger = logging.getLogger(__name__)
+    logger.info("OpenAI MCP server starting...")
+
+    # Load settings
+    settings = Settings()
+    logger.info(f"Loaded settings: {settings}")
+
+    # Create OpenAI client for STATIC mode
+    openai_client = None
+    if settings.MCP_CREDENTIAL_MODE == "STATIC":
+        try:
+            if not settings.OPENAI_API_KEY:
+                raise ValueError(
+                    "OPENAI_API_KEY environment variable is required in STATIC mode"
+                )
+
+            openai_client = OpenAI(api_key=settings.OPENAI_API_KEY)
+            logger.info("Created OpenAI client for STATIC mode")
+        except Exception as e:
+            logger.error(f"Failed to create OpenAI client: {e}")
+            # Don't fail startup, let it fail at request time with better error
+            logger.warning("Server will start but OpenAI operations will fail")
+
+    # Create app context
+    app_context = OpenAIAppContext(settings=settings, openai_client=openai_client)
+
+    logger.info(
+        f"Server initialized in {settings.MCP_CREDENTIAL_MODE} mode "
+        f"on {settings.HOST}:{settings.PORT}"
+    )
+
+    yield {"app_context": app_context}
+
+    logger.info("OpenAI MCP server shutting down...")
+    # Cleanup if needed
+    if openai_client:
+        # OpenAI client doesn't need explicit cleanup
+        pass
+
+
+def create_server() -> FastMCP:
+    """Create and configure the MCP server."""
+    # Load settings for initial configuration
+    settings = Settings()
+    _configure_logging(settings)
+
+    logger = logging.getLogger(__name__)
+    logger.info(f"Creating FastMCP server with {settings.TRANSPORT} transport")
+
+    # Create FastMCP server with lifespan
+    mcp = FastMCP(
+        "openai-assistant-api",
+        lifespan=openai_lifespan,
+    )
+
+    # Add middleware for PASSTHROUGH mode
+    if settings.MCP_CREDENTIAL_MODE == "PASSTHROUGH":
+        mcp.app.add_middleware(PassthroughHeadersMiddleware)
+        logger.info("Added PassthroughHeadersMiddleware for PASSTHROUGH mode")
+
+    return mcp
+
+
+# Create server instance
 settings = Settings()
-
-# Configure logging
-logging.basicConfig(
-    level=getattr(logging, settings.LOG_LEVEL),
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
+_configure_logging(settings)
 logger = logging.getLogger(__name__)
-logger.info("Loaded settings: %s", settings)
 
-# Initialize FastMCP server
-logger.info(f"Creating FastMCP server with {settings.TRANSPORT} transport")
-mcp = FastMCP(
-    "openai-assistant-api",
-    host=settings.HOST,
-    port=settings.PORT,
-)
-logger.info("FastMCP server created: %s", mcp)
+mcp = create_server()
 
 
 # Assistant Tools
@@ -143,7 +210,9 @@ def create_assistant(
         - top_p: Nucleus sampling parameter (0-1)
         - response_format: Output format specification
     """
+    client = get_openai_client()
     return tools_create_assistant(
+        client=client,
         model=model,
         name=name,
         description=description,
@@ -184,13 +253,15 @@ def get_assistant(assistant_id: str) -> Assistant:
         - top_p: Nucleus sampling parameter (0-1)
         - response_format: Output format specification
     """
-    return tools_get_assistant(assistant_id)
+    client = get_openai_client()
+    return tools_get_assistant(client, assistant_id)
 
 
 @mcp.tool()
 def list_assistants() -> SyncCursorPage[Assistant]:
     """List assistants. Use this to view all available assistants."""
-    return tools_list_assistants()
+    client = get_openai_client()
+    return tools_list_assistants(client)
 
 
 @mcp.tool()
@@ -243,7 +314,9 @@ def modify_assistant(
         - top_p: Nucleus sampling parameter (0-1)
         - response_format: Output format specification
     """
+    client = get_openai_client()
     return tools_modify_assistant(
+        client=client,
         assistant_id=assistant_id,
         model=model,
         name=name,
@@ -275,7 +348,8 @@ def delete_assistant(assistant_id: str) -> AssistantDeleted:
         - object: Always "assistant.deleted"
         - deleted: Boolean indicating whether the assistant was successfully deleted
     """
-    return tools_delete_assistant(assistant_id)
+    client = get_openai_client()
+    return tools_delete_assistant(client, assistant_id)
 
 
 # Thread Tools
@@ -304,7 +378,8 @@ def create_thread(
         - metadata: Key-value pairs attached to the thread
         - tool_resources: Resources made available to assistant's tools in this thread
     """
-    return tools_create_thread(messages, metadata, tool_resources)
+    client = get_openai_client()
+    return tools_create_thread(client, messages, metadata, tool_resources)
 
 
 @mcp.tool()
@@ -325,7 +400,8 @@ def get_thread(thread_id: str) -> Thread:
         - metadata: Key-value pairs attached to the thread
         - tool_resources: Resources made available to assistant's tools in this thread
     """
-    return tools_get_thread(thread_id)
+    client = get_openai_client()
+    return tools_get_thread(client, thread_id)
 
 
 @mcp.tool()
@@ -352,7 +428,8 @@ def modify_thread(
         - metadata: Key-value pairs attached to the thread
         - tool_resources: Resources made available to assistant's tools in this thread
     """
-    return tools_modify_thread(thread_id, metadata, tool_resources)
+    client = get_openai_client()
+    return tools_modify_thread(client, thread_id, metadata, tool_resources)
 
 
 @mcp.tool()
@@ -371,7 +448,8 @@ def delete_thread(thread_id: str) -> ThreadDeleted:
         - object: Always "thread.deleted"
         - deleted: Boolean indicating whether the thread was successfully deleted
     """
-    return tools_delete_thread(thread_id)
+    client = get_openai_client()
+    return tools_delete_thread(client, thread_id)
 
 
 # Message Tools
@@ -415,7 +493,9 @@ def create_message(
         - attachments: Files attached to the message
         - metadata: Key-value pairs attached to the message
     """
+    client = get_openai_client()
     return tools_create_message(
+        client=client,
         thread_id=thread_id,
         role=role,
         content=content,
@@ -452,7 +532,8 @@ def get_message(thread_id: str, message_id: str) -> Message:
         - attachments: Files attached to the message
         - metadata: Key-value pairs attached to the message
     """
-    return tools_get_message(thread_id, message_id)
+    client = get_openai_client()
+    return tools_get_message(client, thread_id, message_id)
 
 
 @mcp.tool()
@@ -485,7 +566,9 @@ def list_messages(
         - last_id: The ID of the last message in the list
         - has_more: Whether there are more messages to fetch
     """
+    client = get_openai_client()
     return tools_list_messages(
+        client=client,
         thread_id=thread_id,
         limit=limit,
         order=order,
@@ -528,7 +611,9 @@ def modify_message(
         - attachments: Files attached to the message
         - metadata: Key-value pairs attached to the message
     """
+    client = get_openai_client()
     return tools_modify_message(
+        client=client,
         thread_id=thread_id,
         message_id=message_id,
         metadata=metadata,
@@ -552,7 +637,8 @@ def delete_message(thread_id: str, message_id: str) -> MessageDeleted:
         - object: Always "thread.message.deleted"
         - deleted: Boolean indicating whether the message was successfully deleted
     """
-    return tools_delete_message(thread_id, message_id)
+    client = get_openai_client()
+    return tools_delete_message(client, thread_id, message_id)
 
 
 # Run Tools
@@ -636,7 +722,9 @@ def create_run(
         - truncation_strategy: Controls for thread truncation prior to run
         - incomplete_details: Details on why the run is incomplete
     """
+    client = get_openai_client()
     return tools_create_run(
+        client=client,
         thread_id=thread_id,
         assistant_id=assistant_id,
         model=model,
@@ -734,7 +822,9 @@ def create_thread_and_run(
         - truncation_strategy: Controls for thread truncation prior to run
         - incomplete_details: Details on why the run is incomplete
     """
+    client = get_openai_client()
     return tools_create_thread_and_run(
+        client=client,
         assistant_id=assistant_id,
         thread=thread,
         model=model,
@@ -781,7 +871,9 @@ def list_runs(
         - last_id: The ID of the last run in the list
         - has_more: Whether there are more runs available
     """
+    client = get_openai_client()
     return tools_list_runs(
+        client=client,
         thread_id=thread_id,
         limit=limit,
         order=order,
@@ -834,7 +926,8 @@ def get_run(thread_id: str, run_id: str) -> Run:
         - truncation_strategy: Controls for thread truncation prior to run
         - incomplete_details: Details on why the run is incomplete
     """
-    return tools_get_run(thread_id=thread_id, run_id=run_id)
+    client = get_openai_client()
+    return tools_get_run(client, thread_id=thread_id, run_id=run_id)
 
 
 @mcp.tool()
@@ -886,7 +979,10 @@ def modify_run(
         - truncation_strategy: Controls for thread truncation prior to run
         - incomplete_details: Details on why the run is incomplete
     """
-    return tools_modify_run(thread_id=thread_id, run_id=run_id, metadata=metadata)
+    client = get_openai_client()
+    return tools_modify_run(
+        client, thread_id=thread_id, run_id=run_id, metadata=metadata
+    )
 
 
 @mcp.tool()
@@ -940,7 +1036,9 @@ def submit_tool_outputs(
         - truncation_strategy: Controls for thread truncation prior to run
         - incomplete_details: Details on why the run is incomplete
     """
+    client = get_openai_client()
     return tools_submit_tool_outputs(
+        client=client,
         thread_id=thread_id,
         run_id=run_id,
         tool_outputs=tool_outputs,
@@ -992,7 +1090,8 @@ def cancel_run(thread_id: str, run_id: str) -> Run:
         - truncation_strategy: Controls for thread truncation prior to run
         - incomplete_details: Details on why the run is incomplete
     """
-    return tools_cancel_run(thread_id=thread_id, run_id=run_id)
+    client = get_openai_client()
+    return tools_cancel_run(client, thread_id=thread_id, run_id=run_id)
 
 
 # Run Step Tools
@@ -1030,7 +1129,9 @@ def list_run_steps(
         - last_id: The ID of the last run step in the list
         - has_more: Whether there are more run steps to fetch
     """
+    client = get_openai_client()
     return tools_list_run_steps(
+        client=client,
         thread_id=thread_id,
         run_id=run_id,
         limit=limit,
@@ -1081,7 +1182,9 @@ def get_run_step(
         - step_details: The details of the run step (message creation or tool calls)
         - usage: Usage statistics related to the run step
     """
+    client = get_openai_client()
     return tools_get_run_step(
+        client=client,
         thread_id=thread_id,
         run_id=run_id,
         step_id=step_id,

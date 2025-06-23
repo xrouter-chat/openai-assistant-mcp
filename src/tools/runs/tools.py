@@ -6,17 +6,14 @@ from openai import OpenAI
 from openai.pagination import SyncCursorPage
 from openai.types.beta.threads.run import Run
 
-from src.config.settings import Settings
-
 from ..models import CodeInterpreterTool, FileSearchTool, FunctionTool, ResponseFormat
 from .models import ToolChoice, TruncationStrategy
 
 logger = logging.getLogger(__name__)
-settings = Settings()
-client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
 
 def create_run(
+    client: OpenAI,
     thread_id: str,
     assistant_id: str,
     model: Optional[str] = None,
@@ -42,6 +39,7 @@ def create_run(
     Create a run.
 
     Args:
+        client: OpenAI client instance (injected)
         thread_id: (REQUIRED) The ID of the thread to run
         assistant_id: (REQUIRED) The ID of the assistant to use
         model: Model override for this run
@@ -98,6 +96,7 @@ def create_run(
 
 
 def create_thread_and_run(
+    client: OpenAI,
     assistant_id: str,
     thread: Optional[Dict[str, Any]] = None,
     model: Optional[str] = None,
@@ -122,6 +121,7 @@ def create_thread_and_run(
     Create a thread and run it in one request.
 
     Args:
+        client: OpenAI client instance (injected)
         assistant_id: (REQUIRED) The ID of the assistant to use
         thread: Thread configuration
         model: Model override for this run
@@ -177,6 +177,7 @@ def create_thread_and_run(
 
 
 def list_runs(
+    client: OpenAI,
     thread_id: str,
     limit: Optional[int] = None,
     order: Optional[Literal["asc", "desc"]] = None,
@@ -187,6 +188,7 @@ def list_runs(
     List runs for a thread.
 
     Args:
+        client: OpenAI client instance (injected)
         thread_id: (REQUIRED) The ID of the thread to list runs for
         limit: Limit on number of runs (1-100, default 20)
         order: Sort order ('asc' or 'desc', default 'desc')
@@ -213,11 +215,12 @@ def list_runs(
     return response
 
 
-def get_run(thread_id: str, run_id: str) -> Run:
+def get_run(client: OpenAI, thread_id: str, run_id: str) -> Run:
     """
     Get run by ID.
 
     Args:
+        client: OpenAI client instance (injected)
         thread_id: (REQUIRED) The ID of the thread the run belongs to
         run_id: (REQUIRED) The ID of the run to retrieve
 
@@ -231,6 +234,7 @@ def get_run(thread_id: str, run_id: str) -> Run:
 
 
 def modify_run(
+    client: OpenAI,
     thread_id: str,
     run_id: str,
     metadata: Optional[Dict[str, str]] = None,
@@ -239,6 +243,7 @@ def modify_run(
     Modify a run.
 
     Args:
+        client: OpenAI client instance (injected)
         thread_id: (REQUIRED) The ID of the thread the run belongs to
         run_id: (REQUIRED) The ID of the run to modify
         metadata: Key-value pairs (max 16 pairs)
@@ -255,6 +260,7 @@ def modify_run(
 
 
 def submit_tool_outputs(
+    client: OpenAI,
     thread_id: str,
     run_id: str,
     tool_outputs: List[Dict[str, str]],
@@ -264,6 +270,7 @@ def submit_tool_outputs(
     Submit outputs for tool calls.
 
     Args:
+        client: OpenAI client instance (injected)
         thread_id: (REQUIRED) The ID of the thread the run belongs to
         run_id: (REQUIRED) The ID of the run to submit outputs for
         tool_outputs: (REQUIRED) List of tool outputs with tool_call_id and output
@@ -287,11 +294,12 @@ def submit_tool_outputs(
     return response
 
 
-def cancel_run(thread_id: str, run_id: str) -> Run:
+def cancel_run(client: OpenAI, thread_id: str, run_id: str) -> Run:
     """
     Cancel a run.
 
     Args:
+        client: OpenAI client instance (injected)
         thread_id: (REQUIRED) The ID of the thread the run belongs to
         run_id: (REQUIRED) The ID of the run to cancel
 

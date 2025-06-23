@@ -1,5 +1,5 @@
 """Application settings."""
-from typing import List, Union
+from typing import List, Literal, Union
 
 from pydantic import field_validator
 from pydantic_settings import BaseSettings
@@ -40,6 +40,21 @@ class Settings(BaseSettings):
 
     # OpenAI Settings
     OPENAI_API_KEY: str = ""
+
+    # MCP Credential Mode Settings
+    MCP_CREDENTIAL_MODE: Literal["STATIC", "PASSTHROUGH"] = "STATIC"
+
+    @field_validator("MCP_CREDENTIAL_MODE")
+    @classmethod
+    def validate_credential_mode(cls, v: str) -> str:
+        """Validate credential mode."""
+        allowed_modes = {"STATIC", "PASSTHROUGH"}
+        v_upper = v.upper()
+        if v_upper not in allowed_modes:
+            raise ValueError(
+                f"MCP_CREDENTIAL_MODE must be one of: {', '.join(allowed_modes)}"
+            )
+        return v_upper
 
     # MCP Transport Settings
     TRANSPORT: str = "stdio"  # stdio, http, streamable-http, or sse

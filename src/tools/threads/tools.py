@@ -6,18 +6,15 @@ from openai import OpenAI
 from openai.types.beta.thread import Thread
 from openai.types.beta.thread_deleted import ThreadDeleted
 
-from src.config.settings import Settings
-
 from ..messages import MessageAttachment
 from ..models import ToolResources
 from .models import CreateThreadRequest, ModifyThreadRequest, ThreadMessage
 
 logger = logging.getLogger(__name__)
-settings = Settings()
-client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
 
 def create_thread(
+    client: OpenAI,
     messages: Optional[List[Dict[str, Any]]] = None,
     metadata: Optional[Dict[str, str]] = None,
     tool_resources: Optional[Union[Dict[str, Any], ToolResources]] = None,
@@ -26,6 +23,7 @@ def create_thread(
     Create a thread.
 
     Args:
+        client: OpenAI client instance (injected)
         messages: List of messages to start the thread with
         metadata: Key-value pairs (max 16 pairs)
         tool_resources: Resources for tools
@@ -77,11 +75,12 @@ def create_thread(
     return response
 
 
-def get_thread(thread_id: str) -> Thread:
+def get_thread(client: OpenAI, thread_id: str) -> Thread:
     """
     Get thread by ID.
 
     Args:
+        client: OpenAI client instance (injected)
         thread_id: (REQUIRED) The ID of the thread to retrieve
 
     Returns:
@@ -94,6 +93,7 @@ def get_thread(thread_id: str) -> Thread:
 
 
 def modify_thread(
+    client: OpenAI,
     thread_id: str,
     metadata: Optional[Dict[str, str]] = None,
     tool_resources: Optional[Union[Dict[str, Any], ToolResources]] = None,
@@ -102,6 +102,7 @@ def modify_thread(
     Modify a thread.
 
     Args:
+        client: OpenAI client instance (injected)
         thread_id: (REQUIRED) The ID of the thread to modify
         metadata: Key-value pairs (max 16 pairs)
         tool_resources: Resources for tools
@@ -128,11 +129,12 @@ def modify_thread(
     return response
 
 
-def delete_thread(thread_id: str) -> ThreadDeleted:
+def delete_thread(client: OpenAI, thread_id: str) -> ThreadDeleted:
     """
     Delete a thread.
 
     Args:
+        client: OpenAI client instance (injected)
         thread_id: (REQUIRED) The ID of the thread to delete
 
     Returns:

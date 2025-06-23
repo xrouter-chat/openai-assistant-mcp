@@ -7,17 +7,14 @@ from openai.pagination import SyncCursorPage
 from openai.types.beta.assistant import Assistant
 from openai.types.beta.assistant_deleted import AssistantDeleted
 
-from src.config.settings import Settings
-
 from ..models import ResponseFormat, Tool, ToolResources
 from .models import CreateAssistantRequest, ModifyAssistantRequest
 
 logger = logging.getLogger(__name__)
-settings = Settings()
-client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
 
 def create_assistant(
+    client: OpenAI,
     model: str,
     name: Optional[str] = None,
     description: Optional[str] = None,
@@ -34,6 +31,7 @@ def create_assistant(
     Create an assistant.
 
     Args:
+        client: OpenAI client instance
         model: (REQUIRED) ID of the model to use
         name: Name of the assistant (max 256 chars)
         description: Description of the assistant (max 512 chars)
@@ -75,11 +73,12 @@ def create_assistant(
     return response
 
 
-def get_assistant(assistant_id: str) -> Assistant:
+def get_assistant(client: OpenAI, assistant_id: str) -> Assistant:
     """
     Get assistant by ID.
 
     Args:
+        client: OpenAI client instance (injected)
         assistant_id: (REQUIRED) The ID of the assistant to retrieve
 
     Returns:
@@ -91,11 +90,12 @@ def get_assistant(assistant_id: str) -> Assistant:
     return response
 
 
-def list_assistants() -> SyncCursorPage[Assistant]:
+def list_assistants(client: OpenAI) -> SyncCursorPage[Assistant]:
     """
     List assistants.
 
-    This is an MCP resource since it takes no arguments.
+    Args:
+        client: OpenAI client instance (injected)
 
     Returns:
         SyncCursorPage[Assistant] from OpenAI SDK
@@ -107,6 +107,7 @@ def list_assistants() -> SyncCursorPage[Assistant]:
 
 
 def modify_assistant(
+    client: OpenAI,
     assistant_id: str,
     model: Optional[str] = None,
     name: Optional[str] = None,
@@ -124,6 +125,7 @@ def modify_assistant(
     Modify an assistant.
 
     Args:
+        client: OpenAI client instance (injected)
         assistant_id: (REQUIRED) The ID of the assistant to modify
         model: ID of the model to use
         name: Name of the assistant (max 256 chars)
@@ -160,11 +162,12 @@ def modify_assistant(
     return response
 
 
-def delete_assistant(assistant_id: str) -> AssistantDeleted:
+def delete_assistant(client: OpenAI, assistant_id: str) -> AssistantDeleted:
     """
     Delete an assistant.
 
     Args:
+        client: OpenAI client instance (injected)
         assistant_id: (REQUIRED) The ID of the assistant to delete
 
     Returns:
