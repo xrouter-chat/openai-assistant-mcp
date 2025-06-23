@@ -46,35 +46,35 @@ docker run --rm -p 8661:8661 \
   --port 8661 -vv
 ```
 
-## TOOL IMPLEMENTATION PATTERN
+## ENTERPRISE & MULTI-TENANCY REALITY
 
-**Server Registration Pattern:**
-```python
-# src/server.py
-@mcp.tool()
-def create_assistant(model: str, name: Optional[str] = None) -> Assistant:
-    """Create an assistant with comprehensive docstring for MCP discovery."""
-    return tools_create_assistant(model=model, name=name)
-```
+**The Core Problem: User-Specific Credentials**
 
-**Implementation Delegation:**
-```python
-# src/tools/assistant/tools.py
-def create_assistant(model: str, **kwargs) -> Assistant:
-    client = get_openai_client()
-    return client.beta.assistants.create(model=model, **kwargs)
-```
+Let's be fucking clear: this server is designed for multi-user, enterprise environments. The idea of passing user-specific credentials (like API keys for different services) via global environment variables is not just wrong, it's catastrophically stupid. It implies a "one container per user" model, which is an operational and economic abortion. **This practice is strictly forbidden.**
 
-## CRITICAL DEVELOPMENT RULES
+**The Mandated Architecture: Stateless Authentication via Headers**
 
-### 1. TRANSPORT HANDLING
-- **NEVER** implement custom transport logic - FastMCP handles everything
-- Server startup in `src/server.py` automatically selects transport based on `TRANSPORT` env var
-- stdio = development and testing, streamable-http = MCP Clients, sse = MCP Clients (LEGACY)
+To handle user-specific credentials, we adhere to a stateless, scalable model. This is not a suggestion; it is the law.
 
-### 2. DOMAIN ORGANIZATION
-- OpenAI Assistant API domains: assistant, threads, messages, runs, run_steps
-- Each domain has `tools.py` (implementation) and `models.py` (types)
+1.  **The Anti-Pattern (FORBIDDEN):**
+    ```
+    # THIS IS FUCKING WRONG. DO NOT DO THIS.
+    # Setting a global key that applies to all users.
+    export JIRA_API_TOKEN="some_global_token"
+    ```
+
+2.  **The Standard Pattern (MANDATORY):**
+    The client is responsible for providing credentials with *every single request* via custom HTTP headers. The server uses middleware to process them for the scope of that single request.
+
+    *   **Client Request:**
+        ```bash
+        curl -X POST http://localhost:8001/create_jira_ticket \
+          -H "Content-Type: application/json" \
+          -H "X-Jira-Username: user@example.com" \
+          -H "X-Jira-Api-Token: users_personal_token" \
+          -d '{"project": "PROJ", "summary": "Fix the damn thing"}'
+        ```
+
 - All tools registered in single `src/server.py` file
 
 ### 3. TYPE SAFETY APPROACH
