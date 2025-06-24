@@ -70,8 +70,12 @@ def create_server() -> FastMCP:
     logger = logging.getLogger(__name__)
     logger.info(f"Creating FastMCP server with {settings.TRANSPORT} transport")
 
-    # Create FastMCP server - no middleware needed since we get headers directly
-    mcp = FastMCP("openai-assistant-api")
+    # Create FastMCP server with transport-specific configuration
+    if settings.TRANSPORT.lower() == "stdio":
+        mcp = FastMCP("openai-assistant-api")
+    else:
+        # For HTTP and SSE transports, pass host and port
+        mcp = FastMCP("openai-assistant-api", host=settings.HOST, port=settings.PORT)
 
     return mcp
 
@@ -1134,24 +1138,8 @@ def get_run_step(
 
 def run_server() -> None:
     """Run the MCP server with the configured transport."""
-    transport = settings.TRANSPORT.lower()
-
-    if transport == "stdio":
-        logger.info("Starting server with stdio transport")
-        mcp.run(transport="stdio")
-    elif transport in ("http", "streamable-http"):
-        logger.info(
-            f"Starting server with HTTP transport on {settings.HOST}:{settings.PORT}"
-        )
-        mcp.run(transport="streamable-http", host=settings.HOST, port=settings.PORT)
-    elif transport == "sse":
-        logger.info(
-            f"Starting server with SSE transport on {settings.HOST}:{settings.PORT}"
-        )
-        mcp.run(transport="sse", host=settings.HOST, port=settings.PORT)
-    else:
-        logger.warning(f"Unknown transport '{transport}', falling back to stdio")
-        mcp.run(transport="stdio")
+    logger.info(f"Starting server with {settings.TRANSPORT} transport")
+    mcp.run(transport=settings.TRANSPORT)
 
 
 if __name__ == "__main__":

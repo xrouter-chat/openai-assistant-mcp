@@ -2,40 +2,81 @@
 
 MCP server for OpenAI Assistant API. Provides tools for managing assistants, threads, messages, and runs.
 
-## Installation
+## Deployment
+
+This section outlines the primary methods to deploy and run the OpenAI Assistant MCP server.
+
+### Docker Deployment (Recommended)
+
+Docker is the primary and recommended method for deploying the MCP server, offering consistent environments and easy scaling. It supports both single-user and multi-user configurations.
+
+#### Single-User Docker Deployment
+```bash
+# Start the container with a static OpenAI API key
+docker run --rm -p 8662:8662 \
+  -e OPENAI_API_KEY=your_api_key_here \
+  ghcr.io/olegische/openai-assistant-mcp:latest
+```
+
+#### Multi-User Docker Deployment (with Credential Passthrough)
+
+For multi-user scenarios where different API keys are required per request, enable credential passthrough. The API key will then be provided via the `X-OpenAI-API-Key` header in each request.
 
 ```bash
-# Clone the repository
-git clone <repo-url>
-cd openai-assistant-mcp
+# Start the container with credential passthrough enabled
+docker run --rm -p 8662:8662 \
+  -e MCP_CREDENTIALS_PASSTHROUGH=true \
+  ghcr.io/olegische/openai-assistant-mcp:latest
+```
 
-# Install dependencies
-uv pip install -e .
+### Other Deployment Options
+
+For development or specific scenarios, you can also run the server directly.
+
+#### Direct Python Execution
+```bash
+uv run python src/server.py
+```
+
+#### MCP Dev Mode (for development)
+```bash
+uv run mcp dev src/server.py
 ```
 
 ## Configuration
 
-Set your OpenAI API key:
-```bash
-export OPENAI_API_KEY=your_api_key_here
-```
+This section details how to configure the MCP server for various operational modes.
 
-Or create a `.env` file:
+### Local Mode (Default)
+Set your OpenAI API key in the `.env` file:
 ```
 OPENAI_API_KEY=your_api_key_here
 ```
+
+### Passthrough Mode (Multi-User)
+Enable credential passthrough to allow different API keys per request:
+
+Create a `.env` file:
+```
+MCP_CREDENTIALS_PASSTHROUGH=true
+```
+
+For testing with MCPO or other clients that pass headers, export the API key as environment variable:
+```bash
+export HTTP_HEADER_X_OPENAI_API_KEY="your_api_key_here"
+```
+
+In passthrough mode, the OpenAI API key is provided via the `X-OpenAI-API-Key` header in each request.
 
 ### Transport Configuration
 
 The server supports multiple transport mechanisms via the `TRANSPORT` environment variable:
 
 ```bash
-# stdio (default) - for CLI tools and Claude Desktop
+# stdio (default) - for CLI tools
 export TRANSPORT=stdio
 
-# HTTP - modern streamable HTTP transport (recommended for web)
-export TRANSPORT=http
-# or
+# Streamable HTTP - modern streamable HTTP transport (recommended for web, Cursor, Claude Desktop)
 export TRANSPORT=streamable-http
 
 # SSE - Server-Sent Events (legacy, for backward compatibility)
@@ -44,64 +85,109 @@ export TRANSPORT=sse
 
 Or in your `.env` file:
 ```
-TRANSPORT=stdio
+TRANSPORT=streamable-http
 HOST=0.0.0.0
 PORT=8001
 ```
 
-## Running the Server
+## IDE Integration
 
-### Transport-Specific Examples
+> [!NOTE]
+> As of now, Claude Desktop does **not** support custom headers in URLs and does **not** support multi-user MCP configurations directly. For multi-user scenarios or custom header requirements, consider using MCPO Proxy for integration.
 
-#### STDIO Transport (Default)
-Best for CLI tools and Claude Desktop integration:
+This section details how to integrate the running OpenAI Assistant MCP server with your IDEs and other AI frontends for seamless interaction.
+
+### Direct Integration (e.g., Claude Desktop, Cursor)
+
+When configuring the MCP server in clients like Claude Desktop or Cursor, the key variable is the transport mechanism through which the client will communicate with the server. MCP servers support at least two transports:
+*   `stdio` — standard input/output, where the server process runs directly in the client's stream.
+*   `streamable-http` — a standard HTTP server to which the client sends requests.
+
+The configuration difference lies in the command used to start the server and the transport it listens on.
+
+#### Config for `stdio` (Recommended for Docker, if image supports it)
+
+```json
+{
+  "mcpServers": {
+    "openai-assistant-mcp-stdio": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e", "OPENAI_API_KEY=your_api_key_here",
+        "-e", "TRANSPORT=stdio",
+        "ghcr.io/olegische/openai-assistant-mcp:latest"
+      ]
+    }
+  }
+}
+```
+Here:
+*   `-i` is mandatory because `stdio` only works with a live interactive stdin.
+*   `-e TRANSPORT=stdio` tells the MCP server to use the `stdio` transport.
+
+#### Config for `streamable-http`
+
+```json
+{
+  "mcpServers": {
+    "openai-assistant-mcp-http": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-p", "127.0.0.1:8001:8001",  // Map port
+        "-e", "OPENAI_API_KEY=your_api_key_here",
+        "-e", "TRANSPORT=streamable-http",
+        "-e", "HOST=0.0.0.0",
+        "-e", "PORT=8001",
+        "ghcr.io/olegische/openai-assistant-mcp:latest"
+      ],
+      "url": "http://localhost:8001/mcp"
+    }
+  }
+}
+```
+Here:
+*   In Docker, we map the port `-p 127.0.0.1:8001:8001`.
+*   In the launch arguments, we pass environment variables `-e TRANSPORT=streamable-http`, `-e HOST=0.0.0.0`, and `-e PORT=8001`.
+*   In the config, `"url": "http://localhost:8001/mcp"` is mandatory so the client knows where to send HTTP requests.
+
+#### Important Considerations:
+*   `stdio` does not require a `url` in the config. The process and client communicate directly via stdin/stdout.
+*   `streamable-http` absolutely requires a `url`, otherwise the client will not know where to send HTTP requests.
+*   Not all MCP servers equally support `stdio` and `streamable-http`. If the official image does not have a transport switch, you might need a custom build or check the default transport.
+
+#### Quick Choice:
+*   If the server is lightweight and does not require a separate port — use `stdio`.
+*   If the server is needed as a separate HTTP service — use `streamable-http`.
+
+### Integration via MCPO Proxy (e.g., OpenWebUI, Multi-User Clients)
+
+MCPO (MCP Proxy) is useful for integrating with frontends like OpenWebUI or for multi-user scenarios where credentials need to be passed dynamically via headers.
+
+**Step 1: Ensure MCP server is running with credential passthrough enabled**
+(Refer to "Multi-User Docker Deployment" in the Deployment section)
+
+**Step 2: Set up environment variables for MCPO headers (if needed)**
 ```bash
-# Set transport to stdio
-export TRANSPORT=stdio
-uv run python run_server.py
+export HTTP_HEADER_X_OPENAI_API_KEY="your_openai_api_key_here"
 ```
 
-#### HTTP Transport (Recommended for Web)
-Modern streamable HTTP transport for web services:
+**Step 3: Run MCPO proxy**
+Use the fixed Docker image to avoid schema bugs. This command exposes the MCP server via MCPO at `http://localhost:8602`.
 ```bash
-# Set transport to HTTP
-export TRANSPORT=http
-export HOST=0.0.0.0
-export PORT=8001
-uv run python run_server.py
+docker run -p 8602:8000 ghcr.io/olegische/mcpo-fixed-schema:0.0.15 \
+    --server-type "sse" \
+    --header "{\"X-OpenAI-API-Key\": \"$HTTP_HEADER_X_OPENAI_API_KEY\"}" \
+    -- http://host.docker.internal:8662/sse
 ```
-
-Server will be available at: `http://localhost:8001`
-
-#### SSE Transport (Legacy)
-Server-Sent Events for backward compatibility:
-```bash
-# Set transport to SSE
-export TRANSPORT=sse
-export HOST=0.0.0.0
-export PORT=8001
-uv run python run_server.py
-```
-
-### Development Options
-
-#### Option 1: Direct Python execution
-```bash
-uv run mcp run run_server.py
-```
-
-#### Option 2: MCP Dev Mode (for development)
-```bash
-uv run mcp dev run_server.py
-```
-
-#### Option 3: MCPO with FastAPI UI (recommended for HTTP transport)
-Due to a bug in the official mcpo release, use the fixed fork:
-```bash
-uvx --from git+https://github.com/bmen25124/mcpo.git@fix_schema_defs_not_found mcpo --port 8602 -- uv run mcp run run_server.py
-```
-
 After starting, access the FastAPI UI at: http://localhost:8602/docs
+
+Configure your IDE/client to connect to `http://localhost:8602/sse` (or `/mcp` if using streamable-http transport for the underlying server).
 
 ## Available Tools
 

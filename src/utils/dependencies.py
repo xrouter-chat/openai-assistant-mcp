@@ -65,17 +65,7 @@ def get_openai_client(context: Optional[Context] = None) -> OpenAI:
             return OpenAI(api_key=settings.OPENAI_API_KEY)
 
         # HTTP mode with context available
-        if settings.MCP_CREDENTIAL_MODE == "static":
-            # Use settings even in HTTP mode
-            if not settings.OPENAI_API_KEY:
-                raise ValueError(
-                    "OPENAI_API_KEY environment variable is required in static mode"
-                )
-
-            logger.debug("Creating OpenAI client from environment (HTTP static mode)")
-            return OpenAI(api_key=settings.OPENAI_API_KEY)
-
-        elif settings.MCP_CREDENTIAL_MODE == "passthrough":
+        if settings.MCP_CREDENTIALS_PASSTHROUGH:
             # Get API key from request headers
             headers = get_authentication_headers(context)
             api_key = headers.get("x-openai-api-key")
@@ -91,7 +81,14 @@ def get_openai_client(context: Optional[Context] = None) -> OpenAI:
             return OpenAI(api_key=api_key)
 
         else:
-            raise ValueError(f"Unknown credential mode: {settings.MCP_CREDENTIAL_MODE}")
+            # Use settings (static mode)
+            if not settings.OPENAI_API_KEY:
+                raise ValueError(
+                    "OPENAI_API_KEY environment variable is required in static mode"
+                )
+
+            logger.debug("Creating OpenAI client from environment (HTTP static mode)")
+            return OpenAI(api_key=settings.OPENAI_API_KEY)
 
     except Exception as e:
         logger.error(f"Failed to get OpenAI client: {e}")

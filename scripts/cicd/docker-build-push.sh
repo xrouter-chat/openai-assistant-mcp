@@ -21,7 +21,7 @@ docker_token=$(read_first_line_of_file "secrets/.docker-oauth-token")
 docker_username=$(read_first_line_of_file "secrets/.docker-login-username")
 
 echo "Building Docker image with no cache..."
-docker compose -f docker-compose.build.yml build --no-cache
+docker compose -f docker-compose.build.yml build
 
 if [ $? -eq 0 ]; then
     echo "Build successful. Stopping and restarting development containers..."
