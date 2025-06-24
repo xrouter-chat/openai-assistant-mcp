@@ -1,11 +1,8 @@
 """OpenAI Assistant API tools implementation."""
 import logging
-from typing import Dict, List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional, cast
 
 from openai import OpenAI
-from openai.pagination import SyncCursorPage
-from openai.types.beta.assistant import Assistant
-from openai.types.beta.assistant_deleted import AssistantDeleted
 
 from ..models import ResponseFormat, Tool, ToolResources
 from .models import CreateAssistantRequest, ModifyAssistantRequest
@@ -26,7 +23,7 @@ def create_assistant(
     top_p: Optional[float] = None,
     response_format: Optional[ResponseFormat] = None,
     reasoning_effort: Optional[Literal["low", "medium", "high"]] = None,
-) -> Assistant:
+) -> Dict[str, Any]:
     """
     Create an assistant.
 
@@ -45,7 +42,7 @@ def create_assistant(
         reasoning_effort: Reasoning effort level (low/medium/high)
 
     Returns:
-        Assistant object from OpenAI SDK
+        Assistant data as dictionary
     """
     logger.info("Creating assistant")
 
@@ -70,10 +67,11 @@ def create_assistant(
     logger.info(f"Got response from OpenAI: {response}")
     logger.info(f"Response type: {type(response)}")
 
-    return response
+    # Convert to dict for JSON serialization
+    return cast(Dict[str, Any], response.model_dump())
 
 
-def get_assistant(client: OpenAI, assistant_id: str) -> Assistant:
+def get_assistant(client: OpenAI, assistant_id: str) -> Dict[str, Any]:
     """
     Get assistant by ID.
 
@@ -82,15 +80,15 @@ def get_assistant(client: OpenAI, assistant_id: str) -> Assistant:
         assistant_id: (REQUIRED) The ID of the assistant to retrieve
 
     Returns:
-        Assistant object from OpenAI SDK
+        Assistant data as dictionary
     """
     logger.info(f"Getting assistant {assistant_id}")
 
     response = client.beta.assistants.retrieve(assistant_id)
-    return response
+    return cast(Dict[str, Any], response.model_dump())
 
 
-def list_assistants(client: OpenAI) -> SyncCursorPage[Assistant]:
+def list_assistants(client: OpenAI) -> Dict[str, Any]:
     """
     List assistants.
 
@@ -98,12 +96,12 @@ def list_assistants(client: OpenAI) -> SyncCursorPage[Assistant]:
         client: OpenAI client instance (injected)
 
     Returns:
-        SyncCursorPage[Assistant] from OpenAI SDK
+        List of assistants as dictionary
     """
     logger.info("Listing assistants")
 
     response = client.beta.assistants.list()
-    return response
+    return cast(Dict[str, Any], response.model_dump())
 
 
 def modify_assistant(
@@ -120,7 +118,7 @@ def modify_assistant(
     top_p: Optional[float] = None,
     response_format: Optional[ResponseFormat] = None,
     reasoning_effort: Optional[Literal["low", "medium", "high"]] = None,
-) -> Assistant:
+) -> Dict[str, Any]:
     """
     Modify an assistant.
 
@@ -140,7 +138,7 @@ def modify_assistant(
         reasoning_effort: Reasoning effort level (low/medium/high)
 
     Returns:
-        Assistant object from OpenAI SDK
+        Assistant data as dictionary
     """
     logger.info(f"Modifying assistant {assistant_id}")
 
@@ -159,10 +157,10 @@ def modify_assistant(
     ).model_dump(exclude_none=True)
 
     response = client.beta.assistants.update(assistant_id, **request)
-    return response
+    return cast(Dict[str, Any], response.model_dump())
 
 
-def delete_assistant(client: OpenAI, assistant_id: str) -> AssistantDeleted:
+def delete_assistant(client: OpenAI, assistant_id: str) -> Dict[str, Any]:
     """
     Delete an assistant.
 
@@ -176,4 +174,4 @@ def delete_assistant(client: OpenAI, assistant_id: str) -> AssistantDeleted:
     logger.info(f"Deleting assistant {assistant_id}")
 
     response = client.beta.assistants.delete(assistant_id)
-    return response
+    return cast(Dict[str, Any], response.model_dump())

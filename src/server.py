@@ -7,32 +7,11 @@ import logging
 from contextlib import asynccontextmanager
 from typing import Any, AsyncIterator, Dict, List, Literal, Optional, Union
 
-from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp import Context, FastMCP
 from openai import OpenAI
 
-# Run tools
-# Run models
-from openai.pagination import SyncCursorPage
-
-# Assistant tools
-from openai.types.beta.assistant import Assistant
-from openai.types.beta.assistant_deleted import AssistantDeleted
-
-# Thread tools
-# Thread models
-from openai.types.beta.thread import Thread
-from openai.types.beta.thread_deleted import ThreadDeleted
-
-# Message tools
-# Message models
-from openai.types.beta.threads.message import Message
-from openai.types.beta.threads.message_deleted import MessageDeleted
-from openai.types.beta.threads.run import Run
-
-# Run step tools
 # Run step models
 from openai.types.beta.threads.runs import RunStepInclude
-from openai.types.beta.threads.runs.run_step import RunStep
 
 from .config.settings import Settings
 
@@ -163,6 +142,7 @@ mcp = create_server()
 # Assistant Tools
 @mcp.tool()
 def create_assistant(
+    context: Context,
     model: str,
     name: Optional[str] = None,
     description: Optional[str] = None,
@@ -174,7 +154,7 @@ def create_assistant(
     top_p: Optional[float] = None,
     response_format: Optional[ResponseFormat] = None,
     reasoning_effort: Optional[Literal["low", "medium", "high"]] = None,
-) -> Assistant:
+) -> Dict[str, Any]:
     """
     Create an assistant.
 
@@ -210,7 +190,7 @@ def create_assistant(
         - top_p: Nucleus sampling parameter (0-1)
         - response_format: Output format specification
     """
-    client = get_openai_client()
+    client = get_openai_client(context)
     return tools_create_assistant(
         client=client,
         model=model,
@@ -228,7 +208,7 @@ def create_assistant(
 
 
 @mcp.tool()
-def get_assistant(assistant_id: str) -> Assistant:
+def get_assistant(context: Context, assistant_id: str) -> Dict[str, Any]:
     """
     Get assistant by ID.
 
@@ -253,19 +233,22 @@ def get_assistant(assistant_id: str) -> Assistant:
         - top_p: Nucleus sampling parameter (0-1)
         - response_format: Output format specification
     """
-    client = get_openai_client()
+    client = get_openai_client(context)
     return tools_get_assistant(client, assistant_id)
 
 
 @mcp.tool()
-def list_assistants() -> SyncCursorPage[Assistant]:
+def list_assistants(
+    context: Context,
+) -> Dict[str, Any]:
     """List assistants. Use this to view all available assistants."""
-    client = get_openai_client()
+    client = get_openai_client(context)
     return tools_list_assistants(client)
 
 
 @mcp.tool()
 def modify_assistant(
+    context: Context,
     assistant_id: str,
     model: Optional[str] = None,
     name: Optional[str] = None,
@@ -278,7 +261,7 @@ def modify_assistant(
     top_p: Optional[float] = None,
     response_format: Optional[ResponseFormat] = None,
     reasoning_effort: Optional[Literal["low", "medium", "high"]] = None,
-) -> Assistant:
+) -> Dict[str, Any]:
     """
     Modify an assistant.
 
@@ -314,7 +297,7 @@ def modify_assistant(
         - top_p: Nucleus sampling parameter (0-1)
         - response_format: Output format specification
     """
-    client = get_openai_client()
+    client = get_openai_client(context)
     return tools_modify_assistant(
         client=client,
         assistant_id=assistant_id,
@@ -333,7 +316,7 @@ def modify_assistant(
 
 
 @mcp.tool()
-def delete_assistant(assistant_id: str) -> AssistantDeleted:
+def delete_assistant(context: Context, assistant_id: str) -> Dict[str, Any]:
     """
     Delete an assistant.
 
@@ -348,17 +331,18 @@ def delete_assistant(assistant_id: str) -> AssistantDeleted:
         - object: Always "assistant.deleted"
         - deleted: Boolean indicating whether the assistant was successfully deleted
     """
-    client = get_openai_client()
+    client = get_openai_client(context)
     return tools_delete_assistant(client, assistant_id)
 
 
 # Thread Tools
 @mcp.tool()
 def create_thread(
+    context: Context,
     messages: Optional[List[Dict[str, Any]]] = None,
     metadata: Optional[Dict[str, str]] = None,
     tool_resources: Optional[Union[Dict[str, Any], ToolResources]] = None,
-) -> Thread:
+) -> Dict[str, Any]:
     """
     Create a thread.
 
@@ -378,12 +362,12 @@ def create_thread(
         - metadata: Key-value pairs attached to the thread
         - tool_resources: Resources made available to assistant's tools in this thread
     """
-    client = get_openai_client()
+    client = get_openai_client(context)
     return tools_create_thread(client, messages, metadata, tool_resources)
 
 
 @mcp.tool()
-def get_thread(thread_id: str) -> Thread:
+def get_thread(context: Context, thread_id: str) -> Dict[str, Any]:
     """
     Get thread by ID.
 
@@ -400,16 +384,17 @@ def get_thread(thread_id: str) -> Thread:
         - metadata: Key-value pairs attached to the thread
         - tool_resources: Resources made available to assistant's tools in this thread
     """
-    client = get_openai_client()
+    client = get_openai_client(context)
     return tools_get_thread(client, thread_id)
 
 
 @mcp.tool()
 def modify_thread(
+    context: Context,
     thread_id: str,
     metadata: Optional[Dict[str, str]] = None,
     tool_resources: Optional[Union[Dict[str, Any], ToolResources]] = None,
-) -> Thread:
+) -> Dict[str, Any]:
     """
     Modify a thread.
 
@@ -428,12 +413,12 @@ def modify_thread(
         - metadata: Key-value pairs attached to the thread
         - tool_resources: Resources made available to assistant's tools in this thread
     """
-    client = get_openai_client()
+    client = get_openai_client(context)
     return tools_modify_thread(client, thread_id, metadata, tool_resources)
 
 
 @mcp.tool()
-def delete_thread(thread_id: str) -> ThreadDeleted:
+def delete_thread(context: Context, thread_id: str) -> Dict[str, Any]:
     """
     Delete a thread.
 
@@ -448,19 +433,20 @@ def delete_thread(thread_id: str) -> ThreadDeleted:
         - object: Always "thread.deleted"
         - deleted: Boolean indicating whether the thread was successfully deleted
     """
-    client = get_openai_client()
+    client = get_openai_client(context)
     return tools_delete_thread(client, thread_id)
 
 
 # Message Tools
 @mcp.tool()
 def create_message(
+    context: Context,
     thread_id: str,
     role: Literal["user", "assistant"],
     content: Union[str, List[MessageContent]],
     attachments: Optional[List[Dict[str, Any]]] = None,
     metadata: Optional[Dict[str, str]] = None,
-) -> Message:
+) -> Dict[str, Any]:
     """
     Create a message in a thread.
 
@@ -493,7 +479,7 @@ def create_message(
         - attachments: Files attached to the message
         - metadata: Key-value pairs attached to the message
     """
-    client = get_openai_client()
+    client = get_openai_client(context)
     return tools_create_message(
         client=client,
         thread_id=thread_id,
@@ -505,7 +491,7 @@ def create_message(
 
 
 @mcp.tool()
-def get_message(thread_id: str, message_id: str) -> Message:
+def get_message(context: Context, thread_id: str, message_id: str) -> Dict[str, Any]:
     """
     Get message by ID.
 
@@ -532,19 +518,20 @@ def get_message(thread_id: str, message_id: str) -> Message:
         - attachments: Files attached to the message
         - metadata: Key-value pairs attached to the message
     """
-    client = get_openai_client()
+    client = get_openai_client(context)
     return tools_get_message(client, thread_id, message_id)
 
 
 @mcp.tool()
 def list_messages(
+    context: Context,
     thread_id: str,
     limit: Optional[int] = None,
     order: Optional[str] = None,
     after: Optional[str] = None,
     before: Optional[str] = None,
     run_id: Optional[str] = None,
-) -> SyncCursorPage[Message]:
+) -> Dict[str, Any]:
     """
     List messages for a thread.
 
@@ -566,7 +553,7 @@ def list_messages(
         - last_id: The ID of the last message in the list
         - has_more: Whether there are more messages to fetch
     """
-    client = get_openai_client()
+    client = get_openai_client(context)
     return tools_list_messages(
         client=client,
         thread_id=thread_id,
@@ -580,10 +567,11 @@ def list_messages(
 
 @mcp.tool()
 def modify_message(
+    context: Context,
     thread_id: str,
     message_id: str,
     metadata: Optional[Dict[str, str]] = None,
-) -> Message:
+) -> Dict[str, Any]:
     """
     Modify a message.
 
@@ -611,7 +599,7 @@ def modify_message(
         - attachments: Files attached to the message
         - metadata: Key-value pairs attached to the message
     """
-    client = get_openai_client()
+    client = get_openai_client(context)
     return tools_modify_message(
         client=client,
         thread_id=thread_id,
@@ -621,7 +609,7 @@ def modify_message(
 
 
 @mcp.tool()
-def delete_message(thread_id: str, message_id: str) -> MessageDeleted:
+def delete_message(context: Context, thread_id: str, message_id: str) -> Dict[str, Any]:
     """
     Delete a message.
 
@@ -637,13 +625,14 @@ def delete_message(thread_id: str, message_id: str) -> MessageDeleted:
         - object: Always "thread.message.deleted"
         - deleted: Boolean indicating whether the message was successfully deleted
     """
-    client = get_openai_client()
+    client = get_openai_client(context)
     return tools_delete_message(client, thread_id, message_id)
 
 
 # Run Tools
 @mcp.tool()
 def create_run(
+    context: Context,
     thread_id: str,
     assistant_id: str,
     model: Optional[str] = None,
@@ -664,7 +653,7 @@ def create_run(
     ] = None,
     truncation_strategy: Optional[TruncationStrategy] = None,
     parallel_tool_calls: Optional[bool] = None,
-) -> Run:
+) -> Dict[str, Any]:
     """
     Create a run.
 
@@ -722,7 +711,7 @@ def create_run(
         - truncation_strategy: Controls for thread truncation prior to run
         - incomplete_details: Details on why the run is incomplete
     """
-    client = get_openai_client()
+    client = get_openai_client(context)
     return tools_create_run(
         client=client,
         thread_id=thread_id,
@@ -746,6 +735,7 @@ def create_run(
 
 @mcp.tool()
 def create_thread_and_run(
+    context: Context,
     assistant_id: str,
     thread: Optional[Dict[str, Any]] = None,
     model: Optional[str] = None,
@@ -765,7 +755,7 @@ def create_thread_and_run(
     ] = None,
     truncation_strategy: Optional[TruncationStrategy] = None,
     parallel_tool_calls: Optional[bool] = None,
-) -> Run:
+) -> Dict[str, Any]:
     """
     Create a thread and run it in one request.
 
@@ -822,7 +812,7 @@ def create_thread_and_run(
         - truncation_strategy: Controls for thread truncation prior to run
         - incomplete_details: Details on why the run is incomplete
     """
-    client = get_openai_client()
+    client = get_openai_client(context)
     return tools_create_thread_and_run(
         client=client,
         assistant_id=assistant_id,
@@ -845,12 +835,13 @@ def create_thread_and_run(
 
 @mcp.tool()
 def list_runs(
+    context: Context,
     thread_id: str,
     limit: Optional[int] = None,
     order: Optional[Literal["asc", "desc"]] = None,
     after: Optional[str] = None,
     before: Optional[str] = None,
-) -> SyncCursorPage[Run]:
+) -> Dict[str, Any]:
     """
     List runs for a thread.
 
@@ -871,7 +862,7 @@ def list_runs(
         - last_id: The ID of the last run in the list
         - has_more: Whether there are more runs available
     """
-    client = get_openai_client()
+    client = get_openai_client(context)
     return tools_list_runs(
         client=client,
         thread_id=thread_id,
@@ -883,7 +874,7 @@ def list_runs(
 
 
 @mcp.tool()
-def get_run(thread_id: str, run_id: str) -> Run:
+def get_run(context: Context, thread_id: str, run_id: str) -> Dict[str, Any]:
     """
     Get run by ID.
 
@@ -926,16 +917,17 @@ def get_run(thread_id: str, run_id: str) -> Run:
         - truncation_strategy: Controls for thread truncation prior to run
         - incomplete_details: Details on why the run is incomplete
     """
-    client = get_openai_client()
+    client = get_openai_client(context)
     return tools_get_run(client, thread_id=thread_id, run_id=run_id)
 
 
 @mcp.tool()
 def modify_run(
+    context: Context,
     thread_id: str,
     run_id: str,
     metadata: Optional[Dict[str, str]] = None,
-) -> Run:
+) -> Dict[str, Any]:
     """
     Modify a run.
 
@@ -979,7 +971,7 @@ def modify_run(
         - truncation_strategy: Controls for thread truncation prior to run
         - incomplete_details: Details on why the run is incomplete
     """
-    client = get_openai_client()
+    client = get_openai_client(context)
     return tools_modify_run(
         client, thread_id=thread_id, run_id=run_id, metadata=metadata
     )
@@ -987,11 +979,12 @@ def modify_run(
 
 @mcp.tool()
 def submit_tool_outputs(
+    context: Context,
     thread_id: str,
     run_id: str,
     tool_outputs: List[Dict[str, str]],
     stream: Optional[bool] = None,
-) -> Run:
+) -> Dict[str, Any]:
     """
     Submit outputs for tool calls.
 
@@ -1036,7 +1029,7 @@ def submit_tool_outputs(
         - truncation_strategy: Controls for thread truncation prior to run
         - incomplete_details: Details on why the run is incomplete
     """
-    client = get_openai_client()
+    client = get_openai_client(context)
     return tools_submit_tool_outputs(
         client=client,
         thread_id=thread_id,
@@ -1047,7 +1040,7 @@ def submit_tool_outputs(
 
 
 @mcp.tool()
-def cancel_run(thread_id: str, run_id: str) -> Run:
+def cancel_run(context: Context, thread_id: str, run_id: str) -> Dict[str, Any]:
     """
     Cancel a run.
 
@@ -1090,13 +1083,14 @@ def cancel_run(thread_id: str, run_id: str) -> Run:
         - truncation_strategy: Controls for thread truncation prior to run
         - incomplete_details: Details on why the run is incomplete
     """
-    client = get_openai_client()
+    client = get_openai_client(context)
     return tools_cancel_run(client, thread_id=thread_id, run_id=run_id)
 
 
 # Run Step Tools
 @mcp.tool()
 def list_run_steps(
+    context: Context,
     thread_id: str,
     run_id: str,
     limit: Optional[int] = None,
@@ -1104,7 +1098,7 @@ def list_run_steps(
     after: Optional[str] = None,
     before: Optional[str] = None,
     include: Optional[List[RunStepInclude]] = None,
-) -> SyncCursorPage[RunStep]:
+) -> Dict[str, Any]:
     """
     List run steps for a run.
 
@@ -1129,7 +1123,7 @@ def list_run_steps(
         - last_id: The ID of the last run step in the list
         - has_more: Whether there are more run steps to fetch
     """
-    client = get_openai_client()
+    client = get_openai_client(context)
     return tools_list_run_steps(
         client=client,
         thread_id=thread_id,
@@ -1144,11 +1138,12 @@ def list_run_steps(
 
 @mcp.tool()
 def get_run_step(
+    context: Context,
     thread_id: str,
     run_id: str,
     step_id: str,
     include: Optional[List[RunStepInclude]] = None,
-) -> RunStep:
+) -> Dict[str, Any]:
     """
     Get run step by ID.
 
@@ -1182,7 +1177,7 @@ def get_run_step(
         - step_details: The details of the run step (message creation or tool calls)
         - usage: Usage statistics related to the run step
     """
-    client = get_openai_client()
+    client = get_openai_client(context)
     return tools_get_run_step(
         client=client,
         thread_id=thread_id,
@@ -1192,7 +1187,8 @@ def get_run_step(
     )
 
 
-if __name__ == "__main__":
+def run_server() -> None:
+    """Run the MCP server with the configured transport."""
     transport = settings.TRANSPORT.lower()
 
     if transport == "stdio":
@@ -1211,3 +1207,7 @@ if __name__ == "__main__":
     else:
         logger.warning(f"Unknown transport '{transport}', falling back to stdio")
         mcp.run(transport="stdio")
+
+
+if __name__ == "__main__":
+    run_server()

@@ -1,11 +1,8 @@
 """OpenAI Message API tools implementation."""
 import logging
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Dict, List, Literal, Optional, Union, cast
 
 from openai import OpenAI
-from openai.pagination import SyncCursorPage
-from openai.types.beta.threads.message import Message
-from openai.types.beta.threads.message_deleted import MessageDeleted
 
 from .models import (
     CreateMessageRequest,
@@ -24,7 +21,7 @@ def create_message(
     content: Union[str, List[MessageContent]],
     attachments: Optional[List[Dict[str, Any]]] = None,
     metadata: Optional[Dict[str, str]] = None,
-) -> Message:
+) -> Dict[str, Any]:
     """
     Create a message.
 
@@ -68,7 +65,7 @@ def create_message(
     response = client.beta.threads.messages.create(thread_id=thread_id, **request_data)
     logger.info(f"Got response from OpenAI: {response}")
 
-    return response
+    return cast(Dict[str, Any], response.model_dump())
 
 
 def list_messages(
@@ -79,7 +76,7 @@ def list_messages(
     after: Optional[str] = None,
     before: Optional[str] = None,
     run_id: Optional[str] = None,
-) -> SyncCursorPage[Message]:
+) -> Dict[str, Any]:
     """
     List messages for a thread.
 
@@ -108,14 +105,14 @@ def list_messages(
     params = {k: v for k, v in params.items() if v is not None}
 
     response = client.beta.threads.messages.list(thread_id=thread_id, **params)
-    return response
+    return cast(Dict[str, Any], response.model_dump())
 
 
 def get_message(
     client: OpenAI,
     thread_id: str,
     message_id: str,
-) -> Message:
+) -> Dict[str, Any]:
     """
     Get message by ID.
 
@@ -132,7 +129,7 @@ def get_message(
     response = client.beta.threads.messages.retrieve(
         thread_id=thread_id, message_id=message_id
     )
-    return response
+    return cast(Dict[str, Any], response.model_dump())
 
 
 def modify_message(
@@ -140,7 +137,7 @@ def modify_message(
     thread_id: str,
     message_id: str,
     metadata: Optional[Dict[str, str]] = None,
-) -> Message:
+) -> Dict[str, Any]:
     """
     Modify a message.
 
@@ -160,14 +157,14 @@ def modify_message(
     response = client.beta.threads.messages.update(
         thread_id=thread_id, message_id=message_id, **request
     )
-    return response
+    return cast(Dict[str, Any], response.model_dump())
 
 
 def delete_message(
     client: OpenAI,
     thread_id: str,
     message_id: str,
-) -> MessageDeleted:
+) -> Dict[str, Any]:
     """
     Delete a message.
 
@@ -184,4 +181,4 @@ def delete_message(
     response = client.beta.threads.messages.delete(
         thread_id=thread_id, message_id=message_id
     )
-    return response
+    return cast(Dict[str, Any], response.model_dump())

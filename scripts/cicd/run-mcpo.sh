@@ -5,30 +5,25 @@ set -a
 source .env
 set +a
 
-# URL encode function for tokens (handles = and other special chars)
-urlencode() {
-    python3 -c "import urllib.parse; print(urllib.parse.quote('$1', safe=''))"
-}
+echo "Starting OpenAI Assistant MCP server with MCP Inspector..."
+echo "Server URL: http://localhost:${PORT}"
+echo "Transport: ${TRANSPORT}"
+echo "OpenAI API Key: ${OPENAI_API_KEY:0:20}..."
 
-# URL encode the tokens to handle special characters like =
-ENCODED_JIRA_TOKEN=$(urlencode "${HTTP_HEADER_JIRA_API_TOKEN}")
-ENCODED_CONFLUENCE_TOKEN=$(urlencode "${HTTP_HEADER_CONFLUENCE_API_TOKEN}")
+# Determine the correct endpoint based on transport
+if [ "${TRANSPORT}" = "sse" ]; then
+    ENDPOINT="/messages"
+    SERVER_TYPE="sse"
+elif [ "${TRANSPORT}" = "streamable-http" ] || [ "${TRANSPORT}" = "http" ]; then
+    ENDPOINT=""
+    SERVER_TYPE="http"
+else
+    echo "Error: Unsupported transport '${TRANSPORT}' for MCP Inspector"
+    exit 1
+fi
 
-echo "Starting MCP server with custom headers..."
-echo "JIRA URL: ${HTTP_HEADER_JIRA_URL}"
-echo "JIRA Username: ${HTTP_HEADER_JIRA_USERNAME}"
-echo "JIRA Token (encoded): ${ENCODED_JIRA_TOKEN:0:20}..."
-echo "CONFLUENCE URL: ${HTTP_HEADER_CONFLUENCE_URL}"
-echo "CONFLUENCE Username: ${HTTP_HEADER_CONFLUENCE_USERNAME}"
-echo "CONFLUENCE Token (encoded): ${ENCODED_CONFLUENCE_TOKEN:0:20}..."
-
-uvx mcpo --port 8600 --server-type "sse" \
+uvx mcpo --port 8600 --server-type "${SERVER_TYPE}" \
     --header "{
-        \"X-JIRA-URL\": \"${HTTP_HEADER_JIRA_URL}\",
-        \"X-JIRA-USERNAME\": \"${HTTP_HEADER_JIRA_USERNAME}\",
-        \"X-JIRA-API-TOKEN\": \"${ENCODED_JIRA_TOKEN}\",
-        \"X-CONFLUENCE-URL\": \"${HTTP_HEADER_CONFLUENCE_URL}\",
-        \"X-CONFLUENCE-USERNAME\": \"${HTTP_HEADER_CONFLUENCE_USERNAME}\",
-        \"X-CONFLUENCE-API-TOKEN\": \"${ENCODED_CONFLUENCE_TOKEN}\"
+        \"X-OpenAI-API-Key\": \"${OPENAI_API_KEY}\"
     }" \
-    -- http://localhost:${PORT}/sse
+    -- http://localhost:${PORT}${ENDPOINT}

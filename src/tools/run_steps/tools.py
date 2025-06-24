@@ -1,11 +1,9 @@
 """OpenAI Run Steps API tools implementation."""
 import logging
-from typing import List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional, cast
 
 from openai import NOT_GIVEN, OpenAI
-from openai.pagination import SyncCursorPage
 from openai.types.beta.threads.runs import RunStepInclude
-from openai.types.beta.threads.runs.run_step import RunStep
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +17,7 @@ def list_run_steps(
     after: Optional[str] = None,
     before: Optional[str] = None,
     include: Optional[List[RunStepInclude]] = None,
-) -> SyncCursorPage[RunStep]:
+) -> Dict[str, Any]:
     """
     List run steps for a run.
 
@@ -51,7 +49,7 @@ def list_run_steps(
     )
     logger.info(f"Got response from OpenAI: {response}")
 
-    return response
+    return cast(Dict[str, Any], response.model_dump())
 
 
 def get_run_step(
@@ -60,7 +58,7 @@ def get_run_step(
     run_id: str,
     step_id: str,
     include: Optional[List[RunStepInclude]] = None,
-) -> RunStep:
+) -> Dict[str, Any]:
     """
     Get run step by ID.
 
@@ -86,4 +84,4 @@ def get_run_step(
     )
     logger.info(f"Got response from OpenAI: {response}")
 
-    return response
+    return cast(Dict[str, Any], response.model_dump())

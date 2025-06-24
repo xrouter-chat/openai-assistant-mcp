@@ -11,7 +11,7 @@ alwaysApply: true
 ## ACTUAL PROJECT ARCHITECTURE
 
 **Core Reality:**
-- `src/server.py` - Single FastMCP server file with all `@mcp.tool()` registrations
+- `src/server.py` - Single FastMCP server file with all `@server.tool()` registrations
 - `src/tools/{domain}/` - Domain-organized implementations (assistant, threads, messages, runs, run_steps)
 - `src/config/settings.py` - Pydantic settings with transport configuration
 - `run_server.py` - Simple wrapper for local development
@@ -131,7 +131,7 @@ uv run pytest tests/tools/assistant/ -v
 
 ### When Adding New Tools:
 1. Implement in appropriate `src/tools/{domain}/tools.py`
-2. Register in `src/server.py` with `@mcp.tool()` decorator
+2. Register in `src/server.py` with `@server.tool()` decorator
 3. Use proper OpenAI SDK types for parameters and returns
 4. Write comprehensive docstrings for MCP tool discovery
 5. Add tests in `tests/tools/{domain}/`

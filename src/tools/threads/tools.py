@@ -1,10 +1,8 @@
 """OpenAI Thread API tools implementation."""
 import logging
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, cast
 
 from openai import OpenAI
-from openai.types.beta.thread import Thread
-from openai.types.beta.thread_deleted import ThreadDeleted
 
 from ..messages import MessageAttachment
 from ..models import ToolResources
@@ -18,7 +16,7 @@ def create_thread(
     messages: Optional[List[Dict[str, Any]]] = None,
     metadata: Optional[Dict[str, str]] = None,
     tool_resources: Optional[Union[Dict[str, Any], ToolResources]] = None,
-) -> Thread:
+) -> Dict[str, Any]:
     """
     Create a thread.
 
@@ -72,10 +70,10 @@ def create_thread(
     response = client.beta.threads.create(**request_data)
     logger.info(f"Got response from OpenAI: {response}")
 
-    return response
+    return cast(Dict[str, Any], response.model_dump())
 
 
-def get_thread(client: OpenAI, thread_id: str) -> Thread:
+def get_thread(client: OpenAI, thread_id: str) -> Dict[str, Any]:
     """
     Get thread by ID.
 
@@ -89,7 +87,7 @@ def get_thread(client: OpenAI, thread_id: str) -> Thread:
     logger.info(f"Getting thread {thread_id}")
 
     response = client.beta.threads.retrieve(thread_id)
-    return response
+    return cast(Dict[str, Any], response.model_dump())
 
 
 def modify_thread(
@@ -97,7 +95,7 @@ def modify_thread(
     thread_id: str,
     metadata: Optional[Dict[str, str]] = None,
     tool_resources: Optional[Union[Dict[str, Any], ToolResources]] = None,
-) -> Thread:
+) -> Dict[str, Any]:
     """
     Modify a thread.
 
@@ -126,10 +124,10 @@ def modify_thread(
     ).model_dump(exclude_none=True)
 
     response = client.beta.threads.update(thread_id, **request)
-    return response
+    return cast(Dict[str, Any], response.model_dump())
 
 
-def delete_thread(client: OpenAI, thread_id: str) -> ThreadDeleted:
+def delete_thread(client: OpenAI, thread_id: str) -> Dict[str, Any]:
     """
     Delete a thread.
 
@@ -143,4 +141,4 @@ def delete_thread(client: OpenAI, thread_id: str) -> ThreadDeleted:
     logger.info(f"Deleting thread {thread_id}")
 
     response = client.beta.threads.delete(thread_id)
-    return response
+    return cast(Dict[str, Any], response.model_dump())

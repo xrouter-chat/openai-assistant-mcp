@@ -161,9 +161,10 @@ class JsonSchemaConfig(BaseModel):
     description: Optional[str] = Field(
         default=None, description="A description of what the response format is for."
     )
-    schema: dict = Field(
+    json_schema: dict = Field(
+        alias="schema",
         description="The schema for the response format, "
-        "described as a JSON Schema object."
+        "described as a JSON Schema object.",
     )
     strict: Optional[bool] = Field(
         default=None, description="Whether to enable strict schema adherence."

@@ -3,8 +3,6 @@ import logging
 from typing import Any, Dict, List, Literal, Optional, Union
 
 from openai import OpenAI
-from openai.pagination import SyncCursorPage
-from openai.types.beta.threads.run import Run
 
 from ..models import CodeInterpreterTool, FileSearchTool, FunctionTool, ResponseFormat
 from .models import ToolChoice, TruncationStrategy
@@ -34,7 +32,7 @@ def create_run(
     ] = None,
     truncation_strategy: Optional[TruncationStrategy] = None,
     parallel_tool_calls: Optional[bool] = None,
-) -> Run:
+) -> Dict[str, Any]:
     """
     Create a run.
 
@@ -91,8 +89,8 @@ def create_run(
 
     response = client.beta.threads.runs.create(thread_id=thread_id, **request_data)
     logger.info(f"Got response from OpenAI: {response}")
-
-    return response
+    response_data: Dict[str, Any] = response.model_dump()
+    return response_data
 
 
 def create_thread_and_run(
@@ -116,7 +114,7 @@ def create_thread_and_run(
     ] = None,
     truncation_strategy: Optional[TruncationStrategy] = None,
     parallel_tool_calls: Optional[bool] = None,
-) -> Run:
+) -> Dict[str, Any]:
     """
     Create a thread and run it in one request.
 
@@ -172,8 +170,8 @@ def create_thread_and_run(
 
     response = client.beta.threads.create_and_run(**request_data)
     logger.info(f"Got response from OpenAI: {response}")
-
-    return response
+    response_data: Dict[str, Any] = response.model_dump()
+    return response_data
 
 
 def list_runs(
@@ -183,7 +181,7 @@ def list_runs(
     order: Optional[Literal["asc", "desc"]] = None,
     after: Optional[str] = None,
     before: Optional[str] = None,
-) -> SyncCursorPage[Run]:
+) -> Dict[str, Any]:
     """
     List runs for a thread.
 
@@ -211,11 +209,11 @@ def list_runs(
 
     response = client.beta.threads.runs.list(thread_id=thread_id, **params)
     logger.info(f"Got response from OpenAI: {response}")
+    response_data: Dict[str, Any] = response.model_dump()
+    return response_data
 
-    return response
 
-
-def get_run(client: OpenAI, thread_id: str, run_id: str) -> Run:
+def get_run(client: OpenAI, thread_id: str, run_id: str) -> Dict[str, Any]:
     """
     Get run by ID.
 
@@ -230,7 +228,8 @@ def get_run(client: OpenAI, thread_id: str, run_id: str) -> Run:
     logger.info(f"Getting run {run_id} from thread {thread_id}")
 
     response = client.beta.threads.runs.retrieve(thread_id=thread_id, run_id=run_id)
-    return response
+    response_data: Dict[str, Any] = response.model_dump()
+    return response_data
 
 
 def modify_run(
@@ -238,7 +237,7 @@ def modify_run(
     thread_id: str,
     run_id: str,
     metadata: Optional[Dict[str, str]] = None,
-) -> Run:
+) -> Dict[str, Any]:
     """
     Modify a run.
 
@@ -256,7 +255,8 @@ def modify_run(
     response = client.beta.threads.runs.update(
         thread_id=thread_id, run_id=run_id, metadata=metadata
     )
-    return response
+    response_data: Dict[str, Any] = response.model_dump()
+    return response_data
 
 
 def submit_tool_outputs(
@@ -265,7 +265,7 @@ def submit_tool_outputs(
     run_id: str,
     tool_outputs: List[Dict[str, str]],
     stream: Optional[bool] = None,
-) -> Run:
+) -> Dict[str, Any]:
     """
     Submit outputs for tool calls.
 
@@ -291,10 +291,11 @@ def submit_tool_outputs(
     response = client.beta.threads.runs.submit_tool_outputs(
         thread_id=thread_id, run_id=run_id, **request_data
     )
-    return response
+    response_data: Dict[str, Any] = response.model_dump()
+    return response_data
 
 
-def cancel_run(client: OpenAI, thread_id: str, run_id: str) -> Run:
+def cancel_run(client: OpenAI, thread_id: str, run_id: str) -> Dict[str, Any]:
     """
     Cancel a run.
 
@@ -309,4 +310,5 @@ def cancel_run(client: OpenAI, thread_id: str, run_id: str) -> Run:
     logger.info(f"Cancelling run {run_id} in thread {thread_id}")
 
     response = client.beta.threads.runs.cancel(thread_id=thread_id, run_id=run_id)
-    return response
+    response_data: Dict[str, Any] = response.model_dump()
+    return response_data

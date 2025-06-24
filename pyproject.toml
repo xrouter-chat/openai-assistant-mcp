@@ -8,10 +8,7 @@ authors = [
     {name = "Oleg Math", email = "dimatroso@gmail.com"}
 ]
 dependencies = [
-    "mcp[cli]",
-    "fastmcp>=2.8.1,<2.9.0",
-    "fastapi>=0.110.0,<1.0.0",
-    "uvicorn>=0.27.1,<1.0.0",
+    "mcp>=1.9.4",
     "pydantic>=2.5.2,<3.0.0",
     "pydantic-settings>=2.1.0,<3.0.0",
     "httpx>=0.28.1",

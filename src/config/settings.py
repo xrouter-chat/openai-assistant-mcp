@@ -49,12 +49,11 @@ class Settings(BaseSettings):
     def validate_credential_mode(cls, v: str) -> str:
         """Validate credential mode."""
         allowed_modes = {"static", "passthrough"}
-        v_upper = v.upper()
-        if v_upper not in allowed_modes:
+        if v not in allowed_modes:
             raise ValueError(
                 f"MCP_CREDENTIAL_MODE must be one of: {', '.join(allowed_modes)}"
             )
-        return v_upper
+        return v
 
     # MCP Transport Settings
     TRANSPORT: str = "stdio"  # stdio, http, streamable-http, or sse

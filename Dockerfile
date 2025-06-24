@@ -52,7 +52,6 @@ COPY --from=builder --chown=app:app /app/.venv /app/.venv
 
 # Copy source code
 COPY --from=builder --chown=app:app /app/src /app/src
-COPY --from=builder --chown=app:app /app/run_server.py /app/run_server.py
 
 # Place executables in the environment at the front of the path
 ENV PATH="/app/.venv/bin:$PATH"
@@ -61,14 +60,5 @@ ENV PYTHONPATH=/app
 # Switch to non-root user
 USER app
 
-# Set default environment variables for MCP transport
-ENV TRANSPORT=stdio
-ENV HOST=0.0.0.0
-ENV PORT=8001
-ENV LOG_LEVEL=INFO
-
-# Expose port for HTTP/SSE transports
-EXPOSE 8000
-
-# Run the MCP server with proper command based on transport
-CMD ["python", "run_server.py"]
+# Run the MCP server
+CMD ["python", "-m", "src.server"]

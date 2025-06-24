@@ -71,7 +71,7 @@ These are the immutable laws of this repository.
 *   **Pydantic for Validation:** Use Pydantic models for all data validation.
 *   **Descriptive Naming:** Parameter names must mirror the OpenAI API's terminology.
 *   **Docstrings:** All tools must have docstrings explaining their purpose, parameters, and return values.
-*   **Decorator Usage:** Register all tools using the `@mcp.tool()` decorator.
+*   **Decorator Usage:** Register all tools using the `@server.tool()` decorator.
 
 **Error Handling & Validation**
 
