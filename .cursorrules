@@ -14,6 +14,16 @@ This project follows a structured, agentic development model. The human sets the
 
 ---
 
+### The Holy Trinity of Scripture
+
+This repository is governed by three sacred texts that you **MUST** read and internalize. They are the source of all truth for their respective domains.
+
+1.  **`.cursor/rules/architecture.md`**: **The Law of What Is.** Describes the unchangeable, high-level architecture (statelessness, multi-tenancy).
+2.  **`.cursor/rules/core.md`**: **The Law of How We Build.** Details the canons of craftsmanship (code structure, data philosophy, testing).
+3.  **`.cursor/rules/docker.md`**: **The Law of How We Ship.** Contains the complete guide to containerizing and running the application.
+
+---
+
 ### Agentic Development Workflow
 
 This workflow is not a suggestion; it is the required process for all development.
@@ -23,10 +33,11 @@ This workflow is not a suggestion; it is the required process for all developmen
 *   **The Goal:** Before a single line of code is written, the objective must be crystal clear. The human will define the "what" and the "why." Your job is to understand it, question it if it's fucking stupid, and then figure out the "how."
 *   **Design Document:** For any non-trivial feature, a design must be articulated in `docs/design.md`. This document will outline the high-level flow, the tools required, and the data models involved. A Mermaid diagram is mandatory to visualize the process. If the human can't specify the flow, the AI can't automate it. Don't proceed with a half-assed plan.
 
-**2. Tool & Model Implementation (AI-Led)**
+**2. API Wrapper Implementation (AI-Led)**
 
-*   **Models First:** Define the data structures using Pydantic models. These models are the bedrock of our API. They must be precise, well-documented, and organized by API domain (e.g., `src/tools/assistant/models.py`).
-*   **Tools Second:** Implement the corresponding MCP tools. Each tool must be a clean, focused function that performs a single logical operation. Delegate complex logic to helper functions. These tools are the interface to the world; they must be robust.
+*   **SDK Types First:** Your first step is to find the required data types directly from the `openai` SDK. We do **NOT** reinvent the wheel by writing our own Pydantic models for OpenAI's API structures. This is forbidden.
+*   **Thin Wrappers:** The functions in the `src/tools/` directory are the thinnest possible wrappers around the client API calls. Their only job is to receive parameters, call the client, and return the result. There is no complex logic here.
+*   **Helpers in `utils`:** Any true helper function that is *not* a direct API wrapper belongs in `src/utils/`.
 
 **3. Implementation & Integration (AI-Led)**
 
