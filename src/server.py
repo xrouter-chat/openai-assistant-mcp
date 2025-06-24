@@ -4,11 +4,9 @@ This module implements an MCP server for interacting with OpenAI Assistant API.
 """
 
 import logging
-from contextlib import asynccontextmanager
-from typing import Any, AsyncIterator, Dict, List, Literal, Optional, Union
+from typing import Any, Dict, List, Literal, Optional, Union
 
 from mcp.server.fastmcp import Context, FastMCP
-from openai import OpenAI
 
 # Run step models
 from openai.types.beta.threads.runs import RunStepInclude
@@ -51,9 +49,7 @@ from .tools.threads import create_thread as tools_create_thread
 from .tools.threads import delete_thread as tools_delete_thread
 from .tools.threads import get_thread as tools_get_thread
 from .tools.threads import modify_thread as tools_modify_thread
-from .utils.app_context import OpenAIAppContext
 from .utils.dependencies import get_openai_client
-from .utils.middleware import PassthroughHeadersMiddleware
 
 
 def _configure_logging(settings: Settings) -> None:
@@ -65,49 +61,6 @@ def _configure_logging(settings: Settings) -> None:
     )
 
 
-@asynccontextmanager
-async def openai_lifespan(app: FastMCP) -> AsyncIterator[dict]:
-    """Lifespan context manager for OpenAI MCP server."""
-    logger = logging.getLogger(__name__)
-    logger.info("OpenAI MCP server starting...")
-
-    # Load settings
-    settings = Settings()
-    logger.info(f"Loaded settings: {settings}")
-
-    # Create OpenAI client for static mode
-    openai_client = None
-    if settings.MCP_CREDENTIAL_MODE == "static":
-        try:
-            if not settings.OPENAI_API_KEY:
-                raise ValueError(
-                    "OPENAI_API_KEY environment variable is required in static mode"
-                )
-
-            openai_client = OpenAI(api_key=settings.OPENAI_API_KEY)
-            logger.info("Created OpenAI client for static mode")
-        except Exception as e:
-            logger.error(f"Failed to create OpenAI client: {e}")
-            # Don't fail startup, let it fail at request time with better error
-            logger.warning("Server will start but OpenAI operations will fail")
-
-    # Create app context
-    app_context = OpenAIAppContext(settings=settings, openai_client=openai_client)
-
-    logger.info(
-        f"Server initialized in {settings.MCP_CREDENTIAL_MODE} mode "
-        f"on {settings.HOST}:{settings.PORT}"
-    )
-
-    yield {"app_context": app_context}
-
-    logger.info("OpenAI MCP server shutting down...")
-    # Cleanup if needed
-    if openai_client:
-        # OpenAI client doesn't need explicit cleanup
-        pass
-
-
 def create_server() -> FastMCP:
     """Create and configure the MCP server."""
     # Load settings for initial configuration
@@ -117,16 +70,8 @@ def create_server() -> FastMCP:
     logger = logging.getLogger(__name__)
     logger.info(f"Creating FastMCP server with {settings.TRANSPORT} transport")
 
-    # Create FastMCP server with lifespan
-    mcp = FastMCP(
-        "openai-assistant-api",
-        lifespan=openai_lifespan,
-    )
-
-    # Add middleware for passthrough mode
-    if settings.MCP_CREDENTIAL_MODE == "passthrough":
-        mcp.app.add_middleware(PassthroughHeadersMiddleware)
-        logger.info("Added PassthroughHeadersMiddleware for passthrough mode")
+    # Create FastMCP server - no middleware needed since we get headers directly
+    mcp = FastMCP("openai-assistant-api")
 
     return mcp
 
