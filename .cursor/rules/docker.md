@@ -63,6 +63,47 @@ By adhering to these rules, we ensure that every project is containerized in a w
 
 ---
 
+### Execution Patterns: Running the Container
+
+Building an image is pointless if you don't know how to fucking run it. These are the canonical `docker run` commands. The standard port for this project is **8660**. Do not deviate.
+
+**1. Single-User Mode (Static Key):**
+-   **Use Case:** Local development or a deployment where a single, static API key is sufficient.
+-   **Mechanism:** We map port `8660` on the host to `8660` in the container, and we pass the `PORT` and `OPENAI_API_KEY` environment variables.
+-   **Command:**
+    ```bash
+    docker run --rm -p 8660:8660 \
+      -e TRANSPORT="streamable-http" \
+      -e PORT="8660" \
+      -e OPENAI_API_KEY="your_openai_api_key_here" \
+      ghcr.io/olegische/openai-assistant-mcp:latest
+    ```
+
+**2. Multi-User Mode (Credential Passthrough):**
+-   **Use Case:** Production or multi-tenant environments where each request must provide its own API key.
+-   **Mechanism:** We set `MCP_CREDENTIALS_PASSTHROUGH=true` and demand an `X-OpenAI-API-Key` header on every request.
+-   **Command:**
+    ```bash
+    docker run --rm -p 8660:8660 \
+      -e TRANSPORT="streamable-http" \
+      -e PORT="8660" \
+      -e MCP_CREDENTIALS_PASSTHROUGH="true" \
+      ghcr.io/olegische/openai-assistant-mcp:latest
+    ```
+
+**3. IDE Integration (`stdio` transport):**
+-   **Use Case:** For direct integration with an MCP client (like a CLI tool or an old version of an IDE) that uses standard input/output.
+-   **Mechanism:** The `-i` flag is **mandatory** to keep `stdin` open. The `TRANSPORT=stdio` variable tells the server to listen on `stdio` instead of an HTTP port.
+-   **Command:**
+    ```bash
+    docker run -i --rm \
+      -e OPENAI_API_KEY="your_openai_api_key_here" \
+      -e TRANSPORT="stdio" \
+      ghcr.io/olegische/openai-assistant-mcp:latest
+    ```
+
+---
+
 ### Example `Dockerfile`
 
 ```dockerfile
