@@ -43,12 +43,9 @@ docker pull ghcr.io/olegische/openai-assistant-mcp:latest
 
 ---
 
-### Method 2: MCPO Proxy for Multi-User Support
+### Method 2: Docker with Custom Headers (Multi-User)
 
 **Best for**: Multi-user environments, enterprise deployments, dynamic credentials
-
-> [!IMPORTANT]
-> Claude Desktop and Cursor do **NOT** support custom headers in MCP configurations. For multi-user scenarios, you **MUST** use MCPO proxy.
 
 **Step 1**: Start Docker container with custom headers support
 ```bash
@@ -60,8 +57,19 @@ docker run --rm -p 8662:8662 \
   ghcr.io/olegische/openai-assistant-mcp:latest
 ```
 
-**Step 2**: Set up MCPO proxy (see Method 3 below for full details)
-This method requires MCPO proxy to handle header-based authentication since Claude Desktop cannot pass headers directly.
+**Step 2**: Configure Claude Desktop with HTTP transport
+```json
+{
+  "mcpServers": {
+    "openai-assistant-mcp": {
+      "url": "http://localhost:8662/sse",
+      "headers": {
+        "X-OpenAI-API-Key": "sk-your-openai-api-key-here"
+      }
+    }
+  }
+}
+```
 
 ---
 
@@ -101,7 +109,7 @@ Open http://localhost:8602/docs to test the REST API endpoints.
 
 ## Authentication Setup
 
-### OpenAI API Key
+### OpenAI API Key - **Recommended**
 
 1. Go to https://platform.openai.com/api-keys
 2. Click **Create new secret key**, name it (e.g., "MCP Assistant Server")
@@ -176,7 +184,7 @@ Open http://localhost:8602/docs to test the REST API endpoints.
 }
 ```
 
-#### Option 3: SSE Transport (Legacy)
+#### Option 3: SSE Transport
 
 ```json
 {
@@ -214,8 +222,6 @@ Open http://localhost:8602/docs to test the REST API endpoints.
 - `TRANSPORT`: Transport mechanism ("stdio", "streamable-http", "sse")
 - `HOST`: Host to bind to (default: "localhost")
 - `PORT`: Port to listen on (default: 8662)
-- `MCP_VERBOSE`: Set to "true" for more detailed logging
-- `MCP_LOGGING_STDOUT`: Set to "true" to log to stdout instead of stderr
 
 ### Multi-User Configuration
 
@@ -267,6 +273,12 @@ For multi-user scenarios, enable credential passthrough:
 - **stdio**: Requires `-i` flag in Docker command for interactive mode
 - **HTTP transports**: Require port mapping (`-p`) and `url` in configuration
 - **Headers not working**: Claude Desktop may not support custom headers; use MCPO proxy instead
+
+### Permission Errors
+
+- Ensure your OpenAI API key has sufficient permissions
+- Verify API key has access to Assistants API beta
+- Check OpenAI account billing and usage limits
 
 ### Debugging Commands
 
@@ -380,7 +392,7 @@ Ask your AI assistant to:
 "Cancel the long-running assistant execution"
 ```
 
-### Advanced Workflows
+### Cross-Service Operations
 
 ```
 "Create an assistant, start a thread, add a message, and run it all together"
